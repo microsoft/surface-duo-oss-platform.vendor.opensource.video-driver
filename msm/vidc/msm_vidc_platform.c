@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2017-2019, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
  */
 
 #include <linux/debugfs.h>
@@ -799,7 +799,7 @@ static struct msm_vidc_common_data kona_common_data[] = {
 	},
 	{
 		.key = "qcom,max-mbpf",
-		.value = 173056,	/* (8192x4320)/256 + (4096x2176)/256*/
+		.value = 195840,	/* 24x(1920x1088)/256 */
 	},
 	{
 		.key = "qcom,max-hq-mbs-per-frame",
