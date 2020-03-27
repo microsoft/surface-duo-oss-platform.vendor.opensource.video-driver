@@ -275,6 +275,7 @@
 #define HFI_VENUS_HEIGHT_ALIGNMENT 32
 
 #define SYSTEM_LAL_TILE10 192
+#define NUM_MBS_1080P (((1920 + 15) >> 4) * ((1088 + 15) >> 4))
 #define NUM_MBS_720P (((1280 + 15) >> 4) * ((720 + 15) >> 4))
 #define NUM_MBS_4k (((4096 + 15) >> 4) * ((2304 + 15) >> 4))
 #define MB_SIZE_IN_PIXEL (16 * 16)
@@ -902,10 +903,10 @@ u32 msm_vidc_calculate_dec_input_frame_size(struct msm_vidc_inst *inst)
 
 	/*
 	 * Decoder input size calculation:
+	 * For >1080p cases we expect width/height to be set always.
 	 * If clip is 8k buffer size is calculated for 8k : 8k mbs/4
-	 * For 8k cases we expect width/height to be set always.
-	 * In all other cases size is calculated for 4k:
-	 * 4k mbs for VP8/VP9 and 4k/2 for remaining codecs
+	 * In all other cases size is calculated as minimum 1080p:
+	 * 1080p mbs for VP8/VP9 and 1080p/2 for remaining codecs
 	 */
 	f = &inst->fmts[INPUT_PORT].v4l2_fmt;
 	num_mbs = msm_vidc_get_mbs_per_frame(inst);
@@ -913,7 +914,7 @@ u32 msm_vidc_calculate_dec_input_frame_size(struct msm_vidc_inst *inst)
 		div_factor = 4;
 		base_res_mbs = inst->capability.cap[CAP_MBS_PER_FRAME].max;
 	} else {
-		base_res_mbs = NUM_MBS_4k;
+		base_res_mbs = max_t(u32, num_mbs, NUM_MBS_1080P);
 		if (f->fmt.pix_mp.pixelformat == V4L2_PIX_FMT_VP9)
 			div_factor = 1;
 		else
