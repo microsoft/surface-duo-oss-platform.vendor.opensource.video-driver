@@ -2183,7 +2183,8 @@ static void __core_clear_interrupt_common(struct venus_hfi_device *device)
 }
 
 static int venus_hfi_core_trigger_ssr(void *device,
-		enum hal_ssr_trigger_type type)
+	enum hal_ssr_trigger_type ssr_type, u32 sub_client_id,
+	u32 test_addr)
 {
 	struct hfi_cmd_sys_test_ssr_packet pkt;
 	int rc = 0;
@@ -2197,7 +2198,8 @@ static int venus_hfi_core_trigger_ssr(void *device,
 	dev = device;
 	mutex_lock(&dev->lock);
 
-	rc = call_hfi_pkt_op(dev, ssr_cmd, type, &pkt);
+	rc = call_hfi_pkt_op(dev, ssr_cmd, &pkt, ssr_type,
+			sub_client_id, test_addr);
 	if (rc) {
 		d_vpr_e("core_ping: failed to create packet\n");
 		goto err_create_pkt;
