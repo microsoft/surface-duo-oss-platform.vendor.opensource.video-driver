@@ -42,6 +42,9 @@ u32 vidc_get_hfi_codec(enum hal_video_codec hal_codec, u32 sid)
 	case HAL_VIDEO_CODEC_MPEG2:
 		hfi_codec = HFI_VIDEO_CODEC_MPEG2;
 		break;
+	case HAL_VIDEO_CODEC_VP8:
+		hfi_codec = HFI_VIDEO_CODEC_VP8;
+		break;
 	case HAL_VIDEO_CODEC_HEVC:
 		hfi_codec = HFI_VIDEO_CODEC_HEVC;
 		break;
