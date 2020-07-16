@@ -5,7 +5,6 @@
 #ifndef __HFI_PACKETIZATION_H__
 #define __HFI_PACKETIZATION_H__
 
-#include <linux/types.h>
 #include "vidc_hfi_helper.h"
 #include "vidc_hfi.h"
 #include "vidc_hfi_api.h"

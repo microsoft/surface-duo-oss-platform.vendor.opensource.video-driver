@@ -738,8 +738,8 @@ static unsigned long msm_vidc_calc_freq_iris1(struct msm_vidc_inst *inst,
 			vsp_factor_num *= operating_rate;
 			vsp_factor_den *= inst->clk_data.frame_rate >> 16;
 		}
-		vsp_cycles += ((u64)inst->clk_data.bitrate * vsp_factor_num) /
-				vsp_factor_den;
+		vsp_cycles += div_u64(((u64)inst->clk_data.bitrate *
+					vsp_factor_num), vsp_factor_den);
 
 	} else if (inst->session_type == MSM_VIDC_DECODER) {
 		vpp_cycles = mbs_per_second * inst->clk_data.entry->vpp_cycles /
@@ -750,7 +750,7 @@ static unsigned long msm_vidc_calc_freq_iris1(struct msm_vidc_inst *inst,
 		vsp_cycles = mbs_per_second * inst->clk_data.entry->vsp_cycles;
 
 		/* vsp perf is about 0.5 bits/cycle */
-		vsp_cycles += ((fps * filled_len * 8) * 10) / 5;
+		vsp_cycles += div_u64((fps * filled_len * 8 * 10), 5);
 
 	} else {
 		s_vpr_e(inst->sid, "%s: Unknown session type\n", __func__);
@@ -843,7 +843,7 @@ static unsigned long msm_vidc_calc_freq_iris2(struct msm_vidc_inst *inst,
 
 		codec = get_v4l2_codec(inst);
 		base_cycles = inst->clk_data.entry->vsp_cycles;
-		if (codec == V4L2_PIX_FMT_VP8 || codec == V4L2_PIX_FMT_VP9) {
+		if (codec == V4L2_PIX_FMT_VP9) {
 			vsp_cycles = div_u64(vsp_cycles * 170, 100);
 		} else if (inst->entropy_mode == HFI_H264_ENTROPY_CABAC) {
 			vsp_cycles = div_u64(vsp_cycles * 135, 100);
@@ -874,7 +874,7 @@ static unsigned long msm_vidc_calc_freq_iris2(struct msm_vidc_inst *inst,
 		base_cycles = inst->clk_data.entry->vsp_cycles;
 		vsp_cycles = fps * filled_len * 8;
 
-		if (codec == V4L2_PIX_FMT_VP8 || codec == V4L2_PIX_FMT_VP9) {
+		if (codec == V4L2_PIX_FMT_VP9) {
 			vsp_cycles = div_u64(vsp_cycles * 170, 100);
 		} else if (inst->entropy_mode == HFI_H264_ENTROPY_CABAC) {
 			vsp_cycles = div_u64(vsp_cycles * 135, 100);
@@ -1279,7 +1279,7 @@ int msm_vidc_decide_work_route_iris1(struct msm_vidc_inst *inst)
 		fps = inst->clk_data.frame_rate >> 16;
 		mbps = NUM_MBS_PER_SEC(output_height, output_width, fps);
 		if (slice_mode ==
-			V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES ||
+			V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_BYTES ||
 			(inst->rc_type == V4L2_MPEG_VIDEO_BITRATE_MODE_CBR &&
 			mbps <= CBR_MB_LIMIT) ||
 			(inst->rc_type ==
@@ -1344,8 +1344,8 @@ int msm_vidc_decide_work_route_iris2(struct msm_vidc_inst *inst)
 		height = f->fmt.pix_mp.height;
 		width = f->fmt.pix_mp.width;
 
-		if (slice_mode == V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES ||
-			codec == V4L2_PIX_FMT_VP8 || is_legacy_cbr) {
+		if (slice_mode == V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_BYTES ||
+			is_legacy_cbr) {
 			pdata.video_work_route = 1;
 		}
 	} else {
@@ -1604,8 +1604,7 @@ int msm_vidc_decide_work_mode_iris2(struct msm_vidc_inst *inst)
 		width = inp_f->fmt.pix_mp.width;
 		res_ok = !res_is_greater_than(width, height, 4096, 2160);
 		if (res_ok &&
-			(out_f->fmt.pix_mp.pixelformat == V4L2_PIX_FMT_VP8 ||
-			  inst->clk_data.low_latency_mode)) {
+			(inst->clk_data.low_latency_mode)) {
 			pdata.video_work_mode = HFI_WORKMODE_1;
 			/* For WORK_MODE_1, set Low Latency mode by default */
 			latency.enable = true;

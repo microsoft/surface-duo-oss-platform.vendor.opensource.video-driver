@@ -139,6 +139,70 @@ struct venus_hfi_vpu_ops iris2_ops = {
  * Utility function to enforce some of our assumptions.  Spam calls to this
  * in hotspots in code to double check some of the assumptions that we hold.
  */
+
+struct lut const *__lut(int width, int height, int fps)
+{
+	int frame_size = height * width, c = 0;
+
+	do {
+		if (LUT[c].frame_size >= frame_size && LUT[c].frame_rate >= fps)
+			return &LUT[c];
+	} while (++c < ARRAY_SIZE(LUT));
+
+	return &LUT[ARRAY_SIZE(LUT) - 1];
+}
+
+fp_t __compression_ratio(struct lut const *entry, int bpp)
+{
+	int c = 0;
+
+	for (c = 0; c < COMPRESSION_RATIO_MAX; ++c) {
+		if (entry->compression_ratio[c].bpp == bpp)
+			return entry->compression_ratio[c].ratio;
+	}
+
+	WARN(true, "Shouldn't be here, LUT possibly corrupted?\n");
+	return FP_ZERO; /* impossible */
+}
+
+
+void __dump(struct dump dump[], int len, u32 sid)
+{
+	int c = 0;
+
+	for (c = 0; c < len; ++c) {
+		char format_line[128] = "", formatted_line[128] = "";
+
+		if (dump[c].val == DUMP_HEADER_MAGIC) {
+			snprintf(formatted_line, sizeof(formatted_line), "%s\n",
+					 dump[c].key);
+		} else {
+			bool fp_format = !strcmp(dump[c].format, DUMP_FP_FMT);
+
+			if (!fp_format) {
+				snprintf(format_line, sizeof(format_line),
+						 "    %-35s: %s\n", dump[c].key,
+						 dump[c].format);
+				snprintf(formatted_line, sizeof(formatted_line),
+						 format_line, dump[c].val);
+			} else {
+				size_t integer_part, fractional_part;
+
+				integer_part = fp_int(dump[c].val);
+				fractional_part = fp_frac(dump[c].val);
+				snprintf(formatted_line, sizeof(formatted_line),
+						 "    %-35s: %zd + %zd/%zd\n",
+						 dump[c].key, integer_part,
+						 fractional_part,
+						 fp_frac_base());
+
+
+			}
+		}
+		s_vpr_b(sid, "%s", formatted_line);
+	}
+}
+
 static inline void __strict_check(struct venus_hfi_device *device)
 {
 	msm_vidc_res_handle_fatal_hw_error(device->res,
@@ -418,7 +482,7 @@ static int __session_pause(struct venus_hfi_device *device,
 		return 0;
 
 	session->flags |= SESSION_PAUSE;
-	s_vpr_h(session->sid, "%s: cvp session paused\n", __func__);
+	s_vpr_h(session->sid, "%s: session paused\n", __func__);
 
 	return rc;
 }
@@ -436,7 +500,7 @@ static int __session_resume(struct venus_hfi_device *device,
 		return 0;
 
 	session->flags &= ~SESSION_PAUSE;
-	s_vpr_h(session->sid, "%s: cvp session resumed\n", __func__);
+	s_vpr_h(session->sid, "%s: session resumed\n", __func__);
 
 	rc = __resume(device, session->sid);
 	if (rc) {
@@ -4648,8 +4712,8 @@ void __init_venus_ops(struct venus_hfi_device *device)
 {
 	if (device->res->vpu_ver == VPU_VERSION_AR50)
 		device->vpu_ops = &vpu4_ops;
-        else if (device->res->vpu_ver == VPU_VERSION_AR50_LITE)
-                device->vpu_ops = &ar50_lite_ops;
+	else if (device->res->vpu_ver == VPU_VERSION_AR50_LITE)
+		device->vpu_ops = &ar50_lite_ops;
 	else if (device->res->vpu_ver == VPU_VERSION_IRIS1)
 		device->vpu_ops = &iris1_ops;
 	else

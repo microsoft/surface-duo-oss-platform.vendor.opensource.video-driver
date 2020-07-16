@@ -131,7 +131,7 @@ static const char *const roi_map_type[] = {
 
 static struct msm_vidc_ctrl msm_venc_ctrls[] = {
 	{
-		.id = V4L2_CID_MPEG_VIDEO_UNKNOWN,
+		.id = V4L2_CID_MPEG_VIDC_VIDEO_UNKNOWN,
 		.name = "Invalid control",
 		.type = V4L2_CTRL_TYPE_INTEGER,
 		.minimum = 0,
@@ -451,12 +451,12 @@ static struct msm_vidc_ctrl msm_venc_ctrls[] = {
 		.name = "Slice Mode",
 		.type = V4L2_CTRL_TYPE_MENU,
 		.minimum = V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE,
-		.maximum = V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES,
+		.maximum = V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_BYTES,
 		.default_value = V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE,
 		.menu_skip_mask = ~(
 		(1 << V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE) |
-		(1 << V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB) |
-		(1 << V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES)
+		(1 << V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_MB) |
+		(1 << V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_BYTES)
 		),
 	},
 	{
@@ -3260,10 +3260,10 @@ int msm_venc_set_slice_control_mode(struct msm_vidc_inst *inst)
 		goto set_and_exit;
 
 	ctrl = get_ctrl(inst, V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE);
-	if (ctrl->val == V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB) {
+	if (ctrl->val == V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_MB) {
 		temp = V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB;
 		slice_mode = HFI_MULTI_SLICE_BY_MB_COUNT;
-	} else if (ctrl->val == V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES) {
+	} else if (ctrl->val == V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_BYTES) {
 		temp = V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES;
 		slice_mode = HFI_MULTI_SLICE_BY_BYTE_COUNT;
 	} else {
@@ -3448,12 +3448,14 @@ int msm_venc_set_bitrate_savings_mode(struct msm_vidc_inst *inst)
 	struct v4l2_ctrl *profile = NULL;
 	struct hfi_enable enable;
 	u32 codec;
+	u32 vpu;
 
 	if (!inst || !inst->core) {
 		d_vpr_e("%s: invalid params %pK\n", __func__, inst);
 		return -EINVAL;
 	}
 	hdev = inst->core->device;
+	vpu = inst->core->platform_data->vpu_ver;
 
 	enable.enable = 0;
 	if (inst->rc_type != V4L2_MPEG_VIDEO_BITRATE_MODE_VBR) {
@@ -3479,9 +3481,12 @@ setprop:
 		sizeof(enable));
 	if (rc)
 		s_vpr_e(inst->sid, "%s: set property failed\n", __func__);
-	else
-		rc = msm_venc_set_bitrate_boost_margin(inst, enable.enable);
-
+	else {
+		if (vpu == VPU_VERSION_IRIS2 || vpu == VPU_VERSION_IRIS2_1)
+			rc = msm_venc_set_bitrate_boost_margin(inst, enable.enable);
+		else
+			s_vpr_h(inst->sid, "do not set bitrate boost margin\n");
+	}
 	return rc;
 }
 
@@ -4597,7 +4602,7 @@ int msm_venc_set_cvp_skipratio(struct msm_vidc_inst *inst)
 		d_vpr_e("%s: invalid params %pK\n", __func__, inst);
 		return -EINVAL;
 	}
-	if (!msm_vidc_cvp_usage || !inst->core->resources.cvp_external)
+	if (!msm_vidc_cvp_usage)
 		return 0;
 
 	capture_rate_ctrl = get_ctrl(inst, V4L2_CID_MPEG_VIDC_CAPTURE_FRAME_RATE);

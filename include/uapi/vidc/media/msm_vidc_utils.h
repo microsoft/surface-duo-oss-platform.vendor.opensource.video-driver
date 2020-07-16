@@ -10,6 +10,8 @@
 #include <linux/v4l2-controls.h>
 
 /* vendor color format start */
+#define V4L2_PIX_FMT_TME      v4l2_fourcc('T', 'M', 'E', '0') /* TME stream */
+#define V4L2_PIX_FMT_CVP      v4l2_fourcc('C', 'V', 'P', '0') /* CVP stream */
 /* UBWC 8-bit Y/CbCr 4:2:0  */
 #define V4L2_PIX_FMT_NV12_UBWC                  v4l2_fourcc('Q', '1', '2', '8')
 /* NV12_512 8-bit Y/CbCr 4:2:0  */
@@ -36,6 +38,7 @@
 
 /* Vendor commands start */
 #define V4L2_CMD_FLUSH                              (4)
+#define V4L2_CMD_SESSION_CONTINUE                   (5)
 /* flags for flush cmd */
 #define V4L2_CMD_FLUSH_OUTPUT                       (1 << 0)
 #define V4L2_CMD_FLUSH_CAPTURE                      (1 << 1)
@@ -62,6 +65,40 @@
 		(V4L2_EVENT_MSM_VIDC_START + 9)
 #define V4L2_EVENT_MSM_VIDC_HW_UNSUPPORTED \
 		(V4L2_EVENT_MSM_VIDC_START + 10)
+#define V4L2_EVENT_MSM_VIDC_REGISTER_BUFFER_DONE \
+               (V4L2_EVENT_MSM_VIDC_START + 11)
+#define V4L2_EVENT_MSM_VIDC_UNREGISTER_BUFFER_DONE \
+               (V4L2_EVENT_MSM_VIDC_START + 12)
+
+/*
+ *  CVP Events
+ */
+#define V4L2_EVENT_MSM_CVP_START       (V4L2_EVENT_PRIVATE_START + 0x00001000)
+#define V4L2_EVENT_MSM_CVP_FLUSH_DONE  (V4L2_EVENT_MSM_CVP_START + 1)
+#define V4L2_EVENT_MSM_CVP_PORT_SETTINGS_CHANGED_SUFFICIENT    \
+               (V4L2_EVENT_MSM_CVP_START + 2)
+#define V4L2_EVENT_MSM_CVP_PORT_SETTINGS_CHANGED_INSUFFICIENT  \
+               (V4L2_EVENT_MSM_CVP_START + 3)
+
+#define V4L2_EVENT_MSM_CVP_SYS_ERROR   (V4L2_EVENT_MSM_CVP_START + 5)
+#define V4L2_EVENT_MSM_CVP_RELEASE_BUFFER_REFERENCE \
+               (V4L2_EVENT_MSM_CVP_START + 6)
+#define V4L2_EVENT_MSM_CVP_RELEASE_UNQUEUED_BUFFER \
+               (V4L2_EVENT_MSM_CVP_START + 7)
+#define V4L2_EVENT_MSM_CVP_HW_OVERLOAD (V4L2_EVENT_MSM_CVP_START + 8)
+#define V4L2_EVENT_MSM_CVP_MAX_CLIENTS (V4L2_EVENT_MSM_CVP_START + 9)
+#define V4L2_EVENT_MSM_CVP_HW_UNSUPPORTED (V4L2_EVENT_MSM_CVP_START + 10)
+#define V4L2_EVENT_MSM_CVP_REGISTER_BUFFER_DONE \
+               (V4L2_EVENT_MSM_CVP_START + 11)
+#define V4L2_EVENT_MSM_CVP_UNREGISTER_BUFFER_DONE \
+               (V4L2_EVENT_MSM_CVP_START + 12)
+
+/* (BASE_VIDIOC_PRIVATE + 0) is private ioctl code for video module */
+#define BASE_VIDIOC_PRIVATE_VIDEO      (BASE_VIDIOC_PRIVATE + 0)
+
+/* (BASE_VIDIOC_PRIVATE + 1) is private ioctl code for cvp module */
+#define BASE_VIDIOC_PRIVATE_CVP        (BASE_VIDIOC_PRIVATE + 1)
+
 /* Vendor events end */
 
 /* missing v4l2 entries start */
@@ -216,6 +253,8 @@ enum v4l2_mpeg_vidc_video_vp9_level {
 		(V4L2_CID_MPEG_MSM_VIDC_BASE + 118)
 #define V4L2_CID_MPEG_VIDC_VIDEO_FRAME_RATE \
 		(V4L2_CID_MPEG_MSM_VIDC_BASE + 119)
+#define V4L2_CID_MPEG_VIDC_VENC_BITRATE_SAVINGS \
+		(V4L2_CID_MPEG_MSM_VIDC_BASE + 131)
 #define V4L2_CID_MPEG_VIDC_VIDEO_HEVC_MAX_HIER_CODING_LAYER \
 		(V4L2_CID_MPEG_MSM_VIDC_BASE + 120)
 enum v4l2_mpeg_vidc_video_hevc_max_hier_coding_layer {

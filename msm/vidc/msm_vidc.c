@@ -3,24 +3,18 @@
  * Copyright (c) 2012-2020, The Linux Foundation. All rights reserved.
  */
 
-#include <linux/dma-direction.h>
-#include <linux/sched.h>
-#include <linux/slab.h>
 #include "msm_vidc.h"
 #include "msm_vidc_internal.h"
 #include "msm_vidc_debug.h"
 #include "msm_vdec.h"
 #include "msm_venc.h"
 #include "msm_cvp_internal.h"
-#include "msm_cvp_external.h"
 #include "msm_vidc_common.h"
-#include <linux/delay.h>
 #include "vidc_hfi.h"
 #include "vidc_hfi_helper.h"
 #include "vidc_hfi_api.h"
 #include "msm_vidc_clocks.h"
 #include "msm_vidc_buffer_calculations.h"
-#include <linux/dma-buf.h>
 
 #define MAX_EVENTS 30
 
@@ -367,7 +361,7 @@ int msm_vidc_release_buffer(void *instance, int type, unsigned int index)
 EXPORT_SYMBOL(msm_vidc_release_buffer);
 
 int msm_vidc_qbuf(void *instance, struct media_device *mdev,
-               struct v4l2_buffer *b)
+		struct v4l2_buffer *b)
 {
 	struct msm_vidc_inst *inst = instance;
 	int rc = 0;
@@ -788,90 +782,6 @@ static int msm_vidc_set_properties(struct msm_vidc_inst *inst)
 	return rc;
 }
 
-bool is_vidc_cvp_allowed(struct msm_vidc_inst *inst)
-{
-	bool allowed = false;
-	struct msm_vidc_core *core;
-	struct v4l2_ctrl *cvp_disable;
-	struct v4l2_ctrl *superframe_enable;
-
-	if (!inst || !inst->core) {
-		d_vpr_e("%s: invalid params %pK\n", __func__, inst);
-		goto exit;
-	}
-	core = inst->core;
-
-	/*
-	 * CVP enable if
-	 * - platform support CVP external
-	 * - client did not disable CVP forcefully
-	 *      - client may disable forcefully to save power
-	 * - client did not enable CVP extradata
-	 *      - if enabled, client will give CVP extradata
-	 * - rate control is not one of below modes
-	 *      - RATE_CONTROL_OFF
-	 *      - V4L2_MPEG_VIDEO_BITRATE_MODE_CQ
-	 *      - V4L2_MPEG_VIDEO_BITRATE_MODE_CBR
-	 * - not secure session
-	 * - not superframe enabled
-	 */
-	cvp_disable = get_ctrl(inst, V4L2_CID_MPEG_VIDC_VENC_CVP_DISABLE);
-	superframe_enable = get_ctrl(inst, V4L2_CID_MPEG_VIDC_SUPERFRAME);
-
-	if (core->resources.cvp_external && !cvp_disable->val &&
-		!(inst->prop.extradata_ctrls & EXTRADATA_ENC_INPUT_CVP) &&
-		inst->rc_type != RATE_CONTROL_OFF &&
-		inst->rc_type != V4L2_MPEG_VIDEO_BITRATE_MODE_CQ &&
-		!inst->clk_data.is_legacy_cbr &&
-		!superframe_enable->val) {
-		s_vpr_h(inst->sid, "%s: cvp allowed\n", __func__);
-		allowed = true;
-	} else {
-		s_vpr_h(inst->sid,
-			"%s: cvp not allowed, cvp_external %d cvp_disable %d extradata %#x rc_type %d legacy_cbr %d secure %d superframe %d\n",
-			__func__, core->resources.cvp_external,
-			cvp_disable->val, inst->prop.extradata_ctrls,
-			inst->rc_type, inst->clk_data.is_legacy_cbr,
-			is_secure_session(inst), superframe_enable->val);
-		allowed = false;
-	}
-exit:
-	return allowed;
-}
-
-static int msm_vidc_prepare_preprocess(struct msm_vidc_inst *inst)
-{
-	int rc = 0;
-
-	if (!inst) {
-		d_vpr_e("%s: invalid params\n", __func__);
-		return -EINVAL;
-	}
-
-	if (!msm_vidc_cvp_usage) {
-		s_vpr_h(inst->sid, "%s: cvp usage disabled\n", __func__);
-		return 0;
-	}
-
-	if (!is_vidc_cvp_allowed(inst)) {
-		s_vpr_h(inst->sid, "%s: cvp not allowed\n", __func__);
-		return 0;
-	}
-
-	rc = msm_vidc_cvp_prepare_preprocess(inst);
-	if (rc) {
-		s_vpr_e(inst->sid, "%s: no cvp preprocessing\n", __func__);
-		goto exit;
-	}
-	s_vpr_h(inst->sid, "%s: kernel to kernel cvp enabled\n", __func__);
-	inst->prop.extradata_ctrls |= EXTRADATA_ENC_INPUT_KK_CVP;
-
-exit:
-	if (rc)
-		msm_vidc_cvp_unprepare_preprocess(inst);
-	return rc;
-}
-
 static bool msm_vidc_set_cvp_metadata(struct msm_vidc_inst *inst) {
 
 	int rc = 0;
@@ -882,8 +792,7 @@ static bool msm_vidc_set_cvp_metadata(struct msm_vidc_inst *inst) {
 		return false;
 	}
 
-	if ((inst->prop.extradata_ctrls & EXTRADATA_ENC_INPUT_CVP) ||
-	    (inst->prop.extradata_ctrls & EXTRADATA_ENC_INPUT_KK_CVP))
+	if (inst->prop.extradata_ctrls & EXTRADATA_ENC_INPUT_CVP)
 	    value = 0x1;
 
 	s_vpr_h(inst->sid, "%s: CVP extradata %d\n", __func__, value);
@@ -894,27 +803,7 @@ static bool msm_vidc_set_cvp_metadata(struct msm_vidc_inst *inst) {
 		return false;
 	}
 
-	if (inst->prop.extradata_ctrls & EXTRADATA_ENC_INPUT_KK_CVP) {
-		u32 cap_rate = 0;
-		u32 cvp_rate = 0;
-		u32 oprate = 0;
-		u32 fps_max = CVP_FRAME_RATE_MAX << 16;
-
-		if (inst->clk_data.operating_rate == INT_MAX)
-			oprate = fps_max;
-		else
-			oprate = inst->clk_data.operating_rate;
-
-		cap_rate = max(inst->clk_data.frame_rate, oprate);
-		if (cap_rate > fps_max) {
-			cap_rate = roundup(cap_rate, fps_max);
-			cvp_rate = fps_max;
-		}
-		else
-			cvp_rate = cap_rate;
-		rc = msm_comm_set_cvp_skip_ratio(inst, cap_rate, cvp_rate);
-	}
-	else if(inst->prop.extradata_ctrls & EXTRADATA_ENC_INPUT_CVP)
+	if(inst->prop.extradata_ctrls & EXTRADATA_ENC_INPUT_CVP)
 		rc = msm_venc_set_cvp_skipratio(inst);
 
 	if (rc) {
@@ -942,12 +831,6 @@ static inline int start_streaming(struct msm_vidc_inst *inst)
 	}
 
 	if (is_encode_session(inst)) {
-		rc = msm_vidc_prepare_preprocess(inst);
-		if (rc) {
-			s_vpr_e(inst->sid, "%s: no preprocessing\n", __func__);
-			/* ignore error */
-			rc = 0;
-		}
 		if (!(msm_vidc_set_cvp_metadata(inst)))
 			goto fail_start;
 	}
@@ -1187,25 +1070,6 @@ stream_start_failed:
 	return rc;
 }
 
-static int msm_vidc_unprepare_preprocess(struct msm_vidc_inst *inst)
-{
-	int rc = 0;
-
-	if (!inst) {
-		d_vpr_e("%s: invalid params\n", __func__);
-		return -EINVAL;
-	}
-
-	if (!is_vidc_cvp_enabled(inst))
-		return 0;
-
-	rc = msm_vidc_cvp_unprepare_preprocess(inst);
-	if (rc)
-		s_vpr_e(inst->sid, "%s: failed rc %d\n", __func__, rc);
-
-	return rc;
-}
-
 static inline int stop_streaming(struct msm_vidc_inst *inst)
 {
 	int rc = 0;
@@ -1222,11 +1086,6 @@ static inline int stop_streaming(struct msm_vidc_inst *inst)
 				inst, MSM_VIDC_RELEASE_RESOURCES_DONE);
 
 	if (is_encode_session(inst)) {
-		rc = msm_vidc_unprepare_preprocess(inst);
-		if (rc)
-			s_vpr_e(inst->sid,
-				"%s: failed to unprepare preprocess\n",
-				__func__);
 		inst->all_intra = false;
 	}
 
@@ -1971,10 +1830,6 @@ int msm_vidc_close(void *instance)
 	 */
 	if (inst->session_type == MSM_VIDC_CVP)
 		msm_cvp_inst_deinit(inst);
-
-	/* clean up preprocess if not done already */
-	if (is_encode_session(inst))
-		msm_vidc_unprepare_preprocess(inst);
 
 	msm_vidc_cleanup_instance(inst);
 

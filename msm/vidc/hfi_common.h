@@ -297,6 +297,10 @@ int venus_hfi_initialize(struct hfi_device *hdev, u32 device_id,
 		struct msm_vidc_platform_resources *res,
 		hfi_cmd_response_callback callback);
 
+struct lut const *__lut(int width, int height, int fps);
+fp_t __compression_ratio(struct lut const *entry, int bpp);
+void __dump(struct dump dump[], int len, u32 sid);
+
 void __write_register(struct venus_hfi_device *device,
 		u32 reg, u32 value, u32 sid);
 void __write_register_masked(struct venus_hfi_device *device,

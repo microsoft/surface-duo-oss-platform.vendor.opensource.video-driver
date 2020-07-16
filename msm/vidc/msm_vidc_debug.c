@@ -718,7 +718,6 @@ inline char *get_codec_name(u32 sid)
  * 0xx -> allow prints for all sessions
  * 1xx -> allow only encoder prints
  * 2xx -> allow only decoder prints
- * 4xx -> allow only cvp prints
  */
 inline bool is_print_allowed(u32 sid, u32 level)
 {

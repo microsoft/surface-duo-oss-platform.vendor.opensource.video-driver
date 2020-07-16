@@ -26,6 +26,16 @@ LINUXINCLUDE    += -include $(srctree)/techpack/video/config/litovidconf.h
 endif
 endif
 
+# auto-detect subdirs
+ifeq ($(CONFIG_ARCH_SM8150), y)
+include $(srctree)/techpack/video/config/sm8150vid.conf
+endif
+
+ifeq ($(CONFIG_ARCH_SM8150), y)
+LINUXINCLUDE    += -include $(srctree)/techpack/video/config/sm8150vidconf.h
+endif
+
+
 LINUXINCLUDE    += -I$(srctree)/techpack/video/include \
                    -I$(srctree)/techpack/video/include/uapi \
                    -I$(srctree)/techpack/video/include/uapi/vidc
