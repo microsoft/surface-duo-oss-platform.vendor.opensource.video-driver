@@ -12,6 +12,7 @@
 #include "msm_vidc_res_parse.h"
 #include "msm_vidc_resources.h"
 #include "vidc_hfi_api.h"
+#include "msm_v4l2_private.h"
 #include "msm_vidc_clocks.h"
 
 #define BASE_DEVICE_NUMBER 32
@@ -205,6 +206,15 @@ static int msm_v4l2_querymenu(struct file *file, void *fh,
 	return msm_vidc_query_menu((void *)vidc_inst, qmenu);
 }
 
+static long msm_v4l2_default(struct file *file, void *fh,
+	bool valid_prio, unsigned int cmd, void *arg)
+{
+	struct msm_vidc_inst *vidc_inst = get_vidc_inst(file, fh);
+
+	return msm_vidc_private((void *)vidc_inst, cmd, arg);
+}
+
+
 const struct v4l2_ioctl_ops msm_v4l2_ioctl_ops = {
 	.vidioc_querycap = msm_v4l2_querycap,
 	.vidioc_enum_fmt_vid_cap = msm_v4l2_enum_fmt,
@@ -227,6 +237,7 @@ const struct v4l2_ioctl_ops msm_v4l2_ioctl_ops = {
 	.vidioc_decoder_cmd = msm_v4l2_decoder_cmd,
 	.vidioc_encoder_cmd = msm_v4l2_encoder_cmd,
 	.vidioc_enum_framesizes = msm_v4l2_enum_framesizes,
+	.vidioc_default = msm_v4l2_default,
 };
 
 static const struct v4l2_ioctl_ops msm_v4l2_enc_ioctl_ops = { 0 };
@@ -244,6 +255,7 @@ static const struct v4l2_file_operations msm_v4l2_vidc_fops = {
 	.open = msm_v4l2_open,
 	.release = msm_v4l2_close,
 	.unlocked_ioctl = video_ioctl2,
+	.compat_ioctl32 = msm_v4l2_private,
 	.poll = msm_v4l2_poll,
 };
 
@@ -327,6 +339,8 @@ static ssize_t link_name_show(struct device *dev,
 			return snprintf(buf, PAGE_SIZE, "venus_dec");
 		else if (dev == &core->vdev[MSM_VIDC_ENCODER].vdev.dev)
 			return snprintf(buf, PAGE_SIZE, "venus_enc");
+		else if (dev == &core->vdev[MSM_VIDC_CVP].vdev.dev)
+			return snprintf(buf, PAGE_SIZE, "venus_cvp");
 		else
 			return 0;
 	else
@@ -514,6 +528,16 @@ static int msm_vidc_probe_vidc_device(struct platform_device *pdev)
 		goto err_enc;
 	}
 
+	/* setup the cvp device */
+	if (core->resources.cvp_internal) {
+		rc = msm_vidc_register_video_device(MSM_VIDC_CVP,
+				nr + 2, core, dev);
+		if (rc) {
+			d_vpr_e("Failed to register video CVP\n");
+			goto err_cvp;
+		}
+	}
+
 	/* finish setting up the 'core' */
 	mutex_lock(&vidc_driver->lock);
 	if (vidc_driver->num_cores  + 1 > MSM_VIDC_CORES_MAX) {
@@ -578,6 +602,12 @@ err_fail_sub_device_probe:
 err_core_workq:
 	vidc_hfi_deinitialize(core->hfi_type, core->device);
 err_cores_exceeded:
+	if (core->resources.cvp_internal) {
+		device_remove_file(&core->vdev[MSM_VIDC_CVP].vdev.dev,
+			&dev_attr_link_name);
+		video_unregister_device(&core->vdev[MSM_VIDC_CVP].vdev);
+	}
+err_cvp:
 	device_remove_file(&core->vdev[MSM_VIDC_ENCODER].vdev.dev,
 			&dev_attr_link_name);
 	video_unregister_device(&core->vdev[MSM_VIDC_ENCODER].vdev);
@@ -646,6 +676,11 @@ static int msm_vidc_remove(struct platform_device *pdev)
 	if (core->vidc_core_workq)
 		destroy_workqueue(core->vidc_core_workq);
 	vidc_hfi_deinitialize(core->hfi_type, core->device);
+	if (core->resources.cvp_internal) {
+		device_remove_file(&core->vdev[MSM_VIDC_CVP].vdev.dev,
+				&dev_attr_link_name);
+		video_unregister_device(&core->vdev[MSM_VIDC_CVP].vdev);
+	}
 	device_remove_file(&core->vdev[MSM_VIDC_ENCODER].vdev.dev,
 				&dev_attr_link_name);
 	video_unregister_device(&core->vdev[MSM_VIDC_ENCODER].vdev);

@@ -41,6 +41,15 @@ void __setup_ucregion_memory_map_iris1(struct venus_hfi_device *device, u32 sid)
 	__write_register(device, HFI_DSP_UC_REGION_ADDR,
 			(u32)device->iface_q_table.align_device_addr, sid);
 	__write_register(device, HFI_DSP_UC_REGION_SIZE, SHARED_QSIZE, sid);
+	if (device->res->cvp_internal) {
+		/* initialize DSP QTBL & UCREGION with DSP queues */
+		__write_register(device, HFI_DSP_QTBL_ADDR,
+			(u32)device->dsp_iface_q_table.align_device_addr, sid);
+		__write_register(device, HFI_DSP_UC_REGION_ADDR,
+			(u32)device->dsp_iface_q_table.align_device_addr, sid);
+		__write_register(device, HFI_DSP_UC_REGION_SIZE,
+			device->dsp_iface_q_table.mem_data.size, sid);
+	}
 }
 
 void __clock_config_on_enable_iris1(struct venus_hfi_device *device, u32 sid)

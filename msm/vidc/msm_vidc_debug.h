@@ -16,10 +16,10 @@
 #include <soc/qcom/subsystem_restart.h>
 #include "msm_vidc_internal.h"
 
-// void disable_irq_nosync(unsigned int irq);
-// void enable_irq(unsigned int irq);
+#define MAX_TRACER_LOG_LENGTH 128
 
-void do_gettimeofday(struct timeval *__ddl_tv);
+#define trace_msm_vidc_printf(trace_logbuf, log_length) (void) log_length
+#define trace_msm_v4l2_vidc_fw_load_start(s)
 
 #ifndef CONFIG_VIDEOBUF2_CORE
 int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req);
@@ -66,6 +66,7 @@ enum vidc_msg_prio {
 	VIDC_BUS        = 0x00000020,
 	VIDC_ENCODER    = 0x00000100,
 	VIDC_DECODER    = 0x00000200,
+	VIDC_CVP        = 0x00000400,
 	VIDC_PRINTK     = 0x00001000,
 	VIDC_FTRACE     = 0x00002000,
 	FW_LOW          = 0x00010000,

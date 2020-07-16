@@ -14,6 +14,10 @@
 #include <linux/soc/qcom/smem.h>
 #include <linux/irqreturn.h>
 #include <linux/reset.h>
+#include <linux/interrupt.h>
+#include <linux/coresight-stm.h>
+#include <linux/fastcvpd.h>
+#include <soc/qcom/subsystem_restart.h>
 #include "vidc_hfi_api.h"
 #include "vidc_hfi_helper.h"
 #include "vidc_hfi_api.h"
@@ -217,6 +221,11 @@ struct hal_data {
 
 struct venus_resources {
 	struct msm_vidc_fw fw;
+};
+
+enum dsp_flag {
+	DSP_INIT = BIT(0),
+	DSP_SUSPEND = BIT(1),
 };
 
 enum venus_hfi_state {

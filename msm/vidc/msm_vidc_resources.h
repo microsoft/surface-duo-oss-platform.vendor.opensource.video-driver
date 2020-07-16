@@ -183,6 +183,8 @@ struct msm_vidc_platform_resources {
 	int msm_vidc_hw_rsp_timeout;
 	int msm_vidc_firmware_unload_delay;
 	uint32_t msm_vidc_pwr_collapse_delay;
+	bool cvp_internal;
+	bool cvp_external;
 	bool non_fatal_pagefaults;
 	bool cache_pagetables;
 	bool decode_batching;
@@ -202,7 +204,6 @@ struct msm_vidc_platform_resources {
 	uint32_t avsync_window_size;
 	struct msm_vidc_ubwc_config_data *ubwc_config;
 	uint32_t clk_freq_threshold;
-	struct cx_ipeak_client *cx_ipeak_context;
 	uint32_t ubwc_stats_in_fbd;
 	uint32_t has_vpp_delay;
 	bool enc_auto_dynamic_fps;

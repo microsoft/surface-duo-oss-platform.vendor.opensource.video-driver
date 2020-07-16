@@ -671,6 +671,12 @@ inline void update_log_ctxt(u32 sid, u32 session_type, u32 fourcc)
 	case V4L2_PIX_FMT_HEVC:
 		codec = "h265";
 		break;
+	case V4L2_PIX_FMT_TME:
+		codec = " tme";
+		break;
+	case V4L2_PIX_FMT_CVP:
+		codec = " cvp";
+		break;
 	default:
 		codec = "....";
 		break;
@@ -685,6 +691,9 @@ inline void update_log_ctxt(u32 sid, u32 session_type, u32 fourcc)
 		type = 'd';
 		s_type = VIDC_DECODER;
 		break;
+	case MSM_VIDC_CVP:
+		type = 'c';
+		s_type = VIDC_CVP;
 	default:
 		type = '.';
 		break;
@@ -709,6 +718,7 @@ inline char *get_codec_name(u32 sid)
  * 0xx -> allow prints for all sessions
  * 1xx -> allow only encoder prints
  * 2xx -> allow only decoder prints
+ * 4xx -> allow only cvp prints
  */
 inline bool is_print_allowed(u32 sid, u32 level)
 {

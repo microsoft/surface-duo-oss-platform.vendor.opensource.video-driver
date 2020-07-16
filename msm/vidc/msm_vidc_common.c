@@ -3,12 +3,20 @@
  * Copyright (c) 2012-2020, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/jiffies.h>
+#include <linux/sched.h>
+#include <linux/slab.h>
+#include <linux/kernel.h>
+#include <linux/bitops.h>
 #include <soc/qcom/subsystem_restart.h>
+#include <asm/div64.h>
 #include "msm_vidc_common.h"
 #include "vidc_hfi_api.h"
 #include "vidc_hfi.h"
 #include "msm_vidc_debug.h"
 #include "msm_vidc_clocks.h"
+#include "msm_cvp_external.h"
+#include "msm_cvp_internal.h"
 #include "msm_vidc_buffer_calculations.h"
 
 #define IS_ALREADY_IN_STATE(__p, __d) (\
@@ -23,6 +31,8 @@
 static void handle_session_error(enum hal_command_response cmd, void *data);
 static void msm_vidc_print_running_insts(struct msm_vidc_core *core);
 
+#define V4L2_H264_LEVEL_UNKNOWN V4L2_MPEG_VIDEO_H264_LEVEL_UNKNOWN
+#define V4L2_HEVC_LEVEL_UNKNOWN V4L2_MPEG_VIDEO_HEVC_LEVEL_UNKNOWN
 #define V4L2_VP9_LEVEL_61 V4L2_MPEG_VIDC_VIDEO_VP9_LEVEL_61
 #define TIMESTAMPS_WINDOW_SIZE 32
 
@@ -152,6 +162,8 @@ int msm_comm_hfi_to_v4l2(int id, int value, u32 sid)
 		return V4L2_MPEG_VIDEO_HEVC_LEVEL_6_1;
 	case HFI_HEVC_LEVEL_62:
 		return V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2;
+	case HFI_LEVEL_UNKNOWN:
+		return V4L2_MPEG_VIDEO_HEVC_LEVEL_UNKNOWN;
 	default:
 		goto unknown_value;
 	}
@@ -281,6 +293,8 @@ static int h264_level_v4l2_to_hfi(int value, u32 sid)
 		return HFI_H264_LEVEL_61;
 	case V4L2_MPEG_VIDEO_H264_LEVEL_6_2:
 		return HFI_H264_LEVEL_62;
+	case V4L2_MPEG_VIDEO_H264_LEVEL_UNKNOWN:
+		return HFI_LEVEL_UNKNOWN;
 	default:
 		goto unknown_value;
 	}
@@ -319,6 +333,8 @@ static int hevc_level_v4l2_to_hfi(int value, u32 sid)
 		return HFI_HEVC_LEVEL_61;
 	case V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2:
 		return HFI_HEVC_LEVEL_62;
+	case V4L2_MPEG_VIDEO_HEVC_LEVEL_UNKNOWN:
+		return HFI_LEVEL_UNKNOWN;
 	default:
 		goto unknown_value;
 	}
@@ -847,6 +863,9 @@ enum hal_domain get_hal_domain(int session_type, u32 sid)
 	case MSM_VIDC_DECODER:
 		domain = HAL_VIDEO_DOMAIN_DECODER;
 		break;
+	case MSM_VIDC_CVP:
+		domain = HAL_VIDEO_DOMAIN_CVP;
+		break;
 	default:
 		s_vpr_e(sid, "Wrong domain %d\n", session_type);
 		domain = HAL_UNUSED_DOMAIN;
@@ -882,6 +901,12 @@ enum hal_video_codec get_hal_codec(int fourcc, u32 sid)
 		break;
 	case V4L2_PIX_FMT_HEVC:
 		codec = HAL_VIDEO_CODEC_HEVC;
+		break;
+	case V4L2_PIX_FMT_TME:
+		codec = HAL_VIDEO_CODEC_TME;
+		break;
+	case V4L2_PIX_FMT_CVP:
+		codec = HAL_VIDEO_CODEC_CVP;
 		break;
 	default:
 		s_vpr_e(sid, "Wrong codec: %#x\n", fourcc);
@@ -1425,7 +1450,14 @@ error:
 
 static void msm_vidc_comm_update_ctrl_limits(struct msm_vidc_inst *inst)
 {
+	struct v4l2_format *f;
+
 	if (inst->session_type == MSM_VIDC_ENCODER) {
+		f = &inst->fmts[OUTPUT_PORT].v4l2_fmt;
+		if (get_hal_codec(f->fmt.pix_mp.pixelformat,
+				inst->sid) ==
+				HAL_VIDEO_CODEC_TME)
+			return;
 		msm_vidc_comm_update_ctrl(inst, V4L2_CID_MPEG_VIDEO_BITRATE,
 				&inst->capability.cap[CAP_BITRATE]);
 		msm_vidc_comm_update_ctrl(inst,
@@ -1470,6 +1502,13 @@ static void handle_session_init_done(enum hal_command_response cmd, void *data)
 		s_vpr_e(inst->sid, "Session init response from FW: %#x\n",
 			response->status);
 		goto error;
+	}
+
+	if (inst->session_type == MSM_VIDC_CVP) {
+		s_vpr_h(inst->sid, "%s: cvp session\n", __func__);
+		signal_session_msg_receipt(cmd, inst);
+		put_inst(inst);
+		return;
 	}
 
 	s_vpr_l(inst->sid, "handled: SESSION_INIT_DONE\n");
@@ -2770,6 +2809,12 @@ void handle_cmd_response(enum hal_command_response cmd, void *data)
 	case HAL_SESSION_RELEASE_BUFFER_DONE:
 		handle_session_release_buf_done(cmd, data);
 		break;
+	case HAL_SESSION_REGISTER_BUFFER_DONE:
+		handle_session_register_buffer_done(cmd, data);
+		break;
+	case HAL_SESSION_UNREGISTER_BUFFER_DONE:
+		handle_session_unregister_buffer_done(cmd, data);
+		break;
 	default:
 		d_vpr_l("response unhandled: %d\n", cmd);
 		break;
@@ -3189,6 +3234,8 @@ static int msm_comm_session_init(int flipped_state,
 	} else if (inst->session_type == MSM_VIDC_ENCODER) {
 		f = &inst->fmts[OUTPUT_PORT].v4l2_fmt;
 		fourcc = f->fmt.pix_mp.pixelformat;
+	} else if (inst->session_type == MSM_VIDC_CVP) {
+		fourcc = V4L2_PIX_FMT_CVP;
 	} else {
 		s_vpr_e(inst->sid, "Invalid session\n");
 		return -EINVAL;
@@ -4287,6 +4334,11 @@ int msm_vidc_comm_cmd(void *instance, union msm_v4l2_cmd *cmd)
 			s_vpr_e(inst->sid, "Failed to flush buffers: %d\n", rc);
 		}
 		break;
+	case V4L2_CMD_SESSION_CONTINUE:
+	{
+		rc = msm_comm_session_continue(inst);
+		break;
+	}
 	/* This case also for V4L2_ENC_CMD_STOP */
 	case V4L2_DEC_CMD_STOP:
 	{
@@ -4339,6 +4391,35 @@ int msm_vidc_comm_cmd(void *instance, union msm_v4l2_cmd *cmd)
 		rc = -ENOTSUPP;
 		break;
 	}
+	return rc;
+}
+
+static int msm_comm_preprocess(struct msm_vidc_inst *inst,
+		struct msm_vidc_buffer *mbuf)
+{
+	int rc = 0;
+
+	if (!inst || !mbuf) {
+		d_vpr_e("%s: invalid params %pK %pK\n",
+			__func__, inst, mbuf);
+		return -EINVAL;
+	}
+
+	/* preprocessing is allowed for encoder input buffer only */
+	if (!is_encode_session(inst) || mbuf->vvb.vb2_buf.type != INPUT_MPLANE)
+		return 0;
+
+	/* preprocessing is done using CVP module only */
+	if (!is_vidc_cvp_enabled(inst))
+		return 0;
+
+	rc = msm_vidc_cvp_preprocess(inst, mbuf);
+	if (rc) {
+		s_vpr_e(inst->sid, "%s: cvp preprocess failed\n",
+			__func__);
+		return rc;
+	}
+
 	return rc;
 }
 
@@ -4703,6 +4784,10 @@ int msm_comm_qbuf(struct msm_vidc_inst *inst, struct msm_vidc_buffer *mbuf)
 		print_vidc_buffer(VIDC_HIGH, "qbuf deferred", inst, mbuf);
 		return 0;
 	}
+
+	rc = msm_comm_preprocess(inst, mbuf);
+	if (rc)
+		return rc;
 
 	do_bw_calc = mbuf->vvb.vb2_buf.type == INPUT_MPLANE;
 	rc = msm_comm_scale_clocks_and_bus(inst, do_bw_calc);
@@ -5449,6 +5534,12 @@ int msm_comm_set_recon_buffers(struct msm_vidc_inst *inst)
 	if (!inst) {
 		d_vpr_e("%s: invalid parameters\n", __func__);
 		return -EINVAL;
+	}
+
+	if (inst->session_type != MSM_VIDC_ENCODER &&
+		inst->session_type != MSM_VIDC_DECODER) {
+		s_vpr_h(inst->sid, "Recon buffs not req for cvp\n");
+		return 0;
 	}
 
 	bufcount = inst->fmts[OUTPUT_PORT].count_actual;
