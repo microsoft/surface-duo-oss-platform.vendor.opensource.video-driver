@@ -16,10 +16,8 @@
 #include <soc/qcom/subsystem_restart.h>
 #include "msm_vidc_internal.h"
 
-#define MAX_TRACER_LOG_LENGTH 128
-
-#define trace_msm_vidc_printf(trace_logbuf, log_length) (void) log_length
-#define trace_msm_v4l2_vidc_fw_load_start(s)
+// void disable_irq_nosync(unsigned int irq);
+// void enable_irq(unsigned int irq);
 
 #ifndef CONFIG_VIDEOBUF2_CORE
 int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req);
