@@ -3345,12 +3345,12 @@ int msm_venc_set_intra_refresh_mode(struct msm_vidc_inst *inst)
 	intra_refresh.mbs = 0;
 	f = &inst->fmts[OUTPUT_PORT].v4l2_fmt;
 	if (ctrl->val) {
-		intra_refresh.mode = HFI_INTRA_REFRESH_RANDOM;
 		u32 num_mbs_per_frame = 0;
 		u32 width = f->fmt.pix_mp.width;
 		u32 height = f->fmt.pix_mp.height;
 
 		num_mbs_per_frame = NUM_MBS_PER_FRAME(height, width);
+		intra_refresh.mode = HFI_INTRA_REFRESH_RANDOM;
 		intra_refresh.mbs = num_mbs_per_frame / ctrl->val;
 		if (num_mbs_per_frame % ctrl->val) {
 			intra_refresh.mbs++;
