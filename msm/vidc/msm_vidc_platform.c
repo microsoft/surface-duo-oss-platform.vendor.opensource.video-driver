@@ -841,6 +841,14 @@ static u32 vpe_csc_custom_limit_coeff[HAL_MAX_LIMIT_COEFFS] = {
 	16, 235, 16, 240, 16, 240
 };
 
+struct allowed_clock_rates_table shima_clock_data_v0[] = {
+	{240000000}, {338000000}, {366000000}, {444000000}
+};
+
+struct allowed_clock_rates_table shima_clock_data_v2[] = {
+	{201600000}
+};
+
 static struct msm_vidc_common_data default_common_data[] = {
 	{
 		.key = "qcom,never-unload-fw",
@@ -1633,6 +1641,8 @@ static struct msm_vidc_platform_data default_data = {
 static struct msm_vidc_platform_data lahaina_data = {
 	.codec_data = lahaina_codec_data,
 	.codec_data_length =  ARRAY_SIZE(lahaina_codec_data),
+	.clock_data = NULL,
+	.clock_data_length = 0,
 	.common_data = lahaina_common_data,
 	.common_data_length =  ARRAY_SIZE(lahaina_common_data),
 	.csc_data.vpe_csc_custom_bias_coeff = vpe_csc_custom_bias_coeff,
@@ -1653,6 +1663,8 @@ static struct msm_vidc_platform_data lahaina_data = {
 static struct msm_vidc_platform_data bengal_data = {
 	.codec_data = bengal_codec_data,
 	.codec_data_length =  ARRAY_SIZE(bengal_codec_data),
+	.clock_data = NULL,
+	.clock_data_length = 0,
 	.common_data = bengal_common_data_v0,
 	.common_data_length =  ARRAY_SIZE(bengal_common_data_v0),
 	.csc_data.vpe_csc_custom_bias_coeff = vpe_csc_custom_bias_coeff,
@@ -1673,6 +1685,8 @@ static struct msm_vidc_platform_data bengal_data = {
 static struct msm_vidc_platform_data shima_data = {
 	.codec_data = shima_codec_data,
 	.codec_data_length = ARRAY_SIZE(shima_codec_data),
+	.clock_data = shima_clock_data_v0,
+	.clock_data_length = ARRAY_SIZE(shima_clock_data_v0),
 	.common_data = shima_common_data_v0,
 	.common_data_length = ARRAY_SIZE(shima_common_data_v0),
 	.csc_data.vpe_csc_custom_bias_coeff = vpe_csc_custom_bias_coeff,
@@ -1693,6 +1707,8 @@ static struct msm_vidc_platform_data shima_data = {
 static struct msm_vidc_platform_data holi_data = {
 	.codec_data = holi_codec_data,
 	.codec_data_length =  ARRAY_SIZE(holi_codec_data),
+	.clock_data = NULL,
+	.clock_data_length = 0,
 	.common_data = holi_common_data,
 	.common_data_length =  ARRAY_SIZE(holi_common_data),
 	.csc_data.vpe_csc_custom_bias_coeff = vpe_csc_custom_bias_coeff,
@@ -1713,6 +1729,8 @@ static struct msm_vidc_platform_data holi_data = {
 static struct msm_vidc_platform_data sm8150_data = {
 	.codec_data = sm8150_codec_data,
 	.codec_data_length =  ARRAY_SIZE(sm8150_codec_data),
+	.clock_data = NULL,
+	.clock_data_length = 0,
 	.common_data = sm8150_common_data,
 	.common_data_length =  ARRAY_SIZE(sm8150_common_data),
 	.csc_data.vpe_csc_custom_bias_coeff = vpe_csc_custom_bias_coeff,
@@ -1870,6 +1888,8 @@ void *vidc_get_drv_data(struct device *dev)
 		}
 	} else if (!strcmp(match->compatible, "qcom,shima-vidc")) {
 		if (driver_data->sku_version == SKU_VERSION_1) {
+			driver_data->clock_data = NULL;
+			driver_data->clock_data_length = 0;
 			driver_data->common_data = shima_common_data_v1;
 			driver_data->common_data_length =
 					ARRAY_SIZE(shima_common_data_v1);
@@ -1877,6 +1897,9 @@ void *vidc_get_drv_data(struct device *dev)
 			driver_data->codec_caps_count =
 					ARRAY_SIZE(shima_capabilities_v1);
 		} else if (driver_data->sku_version == SKU_VERSION_2) {
+			driver_data->clock_data = shima_clock_data_v2;
+			driver_data->clock_data_length =
+					ARRAY_SIZE(shima_clock_data_v2);
 			driver_data->common_data = shima_common_data_v2;
 			driver_data->common_data_length =
 					ARRAY_SIZE(shima_common_data_v2);
