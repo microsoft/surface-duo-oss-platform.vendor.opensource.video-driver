@@ -1666,6 +1666,11 @@ static struct msm_vidc_ubwc_config_data shima_ubwc_data[] = {
 	UBWC_CONFIG(1, 1, 1, 0, 0, 0, 8, 32, 15, 0, 0),
 };
 
+/* Default UBWC config for LPDDR5 */
+static struct msm_vidc_ubwc_config_data scshrike_ubwc_data[] = {
+	UBWC_CONFIG(1, 0, 1, 0, 0, 0, 8, 0, 16, 0, 0),
+};
+
 static struct msm_vidc_platform_data default_data = {
 	.codec_data = default_codec_data,
 	.codec_data_length =  ARRAY_SIZE(default_codec_data),
@@ -1792,6 +1797,28 @@ static struct msm_vidc_platform_data sm8150_data = {
 	.codec_caps_count = ARRAY_SIZE(sm8150_capabilities),
 };
 
+static struct msm_vidc_platform_data scshrike_data = {
+	.codec_data = sm8150_codec_data,
+	.codec_data_length =  ARRAY_SIZE(sm8150_codec_data),
+	.clock_data = NULL,
+	.clock_data_length = 0,
+	.common_data = sm8150_common_data,
+	.common_data_length =  ARRAY_SIZE(sm8150_common_data),
+	.csc_data.vpe_csc_custom_bias_coeff = vpe_csc_custom_bias_coeff,
+	.csc_data.vpe_csc_custom_matrix_coeff = vpe_csc_custom_matrix_coeff,
+	.csc_data.vpe_csc_custom_limit_coeff = vpe_csc_custom_limit_coeff,
+	.efuse_data = NULL,
+	.efuse_data_length = 0,
+	.sku_version = 0,
+	.vpu_ver = VPU_VERSION_IRIS1,
+	.num_vpp_pipes = 0x2,
+	.ubwc_config = scshrike_ubwc_data,
+	.codecs = sm8150_codecs,
+	.codecs_count = ARRAY_SIZE(sm8150_codecs),
+	.codec_caps = sm8150_capabilities,
+	.codec_caps_count = ARRAY_SIZE(sm8150_capabilities),
+};
+
 static const struct of_device_id msm_vidc_dt_device[] = {
 	{
 		.compatible = "qcom,lahaina-vidc",
@@ -1812,6 +1839,10 @@ static const struct of_device_id msm_vidc_dt_device[] = {
 	{
 		.compatible = "qcom,sm8150-vidc",
 		.data = &sm8150_data,
+	},
+	{
+		.compatible = "qcom,scshrike-vidc",
+		.data = &scshrike_data,
 	},
 	{},
 };
