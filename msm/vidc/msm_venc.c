@@ -314,12 +314,14 @@ static struct msm_vidc_ctrl msm_venc_ctrls[] = {
 		.name = "H264 Profile",
 		.type = V4L2_CTRL_TYPE_MENU,
 		.minimum = V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE,
-		.maximum = V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH,
+		.maximum = V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_HIGH,
 		.default_value = V4L2_MPEG_VIDEO_H264_PROFILE_HIGH,
 		.menu_skip_mask = ~(
 		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE) |
+		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE) |
 		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_MAIN) |
-		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_HIGH)
+		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_HIGH) |
+		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_HIGH)
 		),
 		.qmenu = mpeg_video_h264_profile,
 	},
@@ -328,8 +330,8 @@ static struct msm_vidc_ctrl msm_venc_ctrls[] = {
 		.name = "H264 Level",
 		.type = V4L2_CTRL_TYPE_MENU,
 		.minimum = V4L2_MPEG_VIDEO_H264_LEVEL_1_0,
-		.maximum = V4L2_MPEG_VIDEO_H264_LEVEL_5_1,
-		.default_value = V4L2_MPEG_VIDEO_H264_LEVEL_5_0,
+		.maximum = V4L2_MPEG_VIDEO_H264_LEVEL_6_2,
+		.default_value = V4L2_MPEG_VIDEO_H264_LEVEL_6_2,
 		.menu_skip_mask = ~(
 		(1 << V4L2_MPEG_VIDEO_H264_LEVEL_1_0) |
 		(1 << V4L2_MPEG_VIDEO_H264_LEVEL_1B) |
@@ -346,7 +348,11 @@ static struct msm_vidc_ctrl msm_venc_ctrls[] = {
 		(1 << V4L2_MPEG_VIDEO_H264_LEVEL_4_1) |
 		(1 << V4L2_MPEG_VIDEO_H264_LEVEL_4_2) |
 		(1 << V4L2_MPEG_VIDEO_H264_LEVEL_5_0) |
-		(1 << V4L2_MPEG_VIDEO_H264_LEVEL_5_1)
+		(1 << V4L2_MPEG_VIDEO_H264_LEVEL_5_1) |
+		(1 << V4L2_MPEG_VIDEO_H264_LEVEL_5_2) |
+		(1 << V4L2_MPEG_VIDEO_H264_LEVEL_6_0) |
+		(1 << V4L2_MPEG_VIDEO_H264_LEVEL_6_1) |
+		(1 << V4L2_MPEG_VIDEO_H264_LEVEL_6_2)
 		),
 		.qmenu = mpeg_video_h264_level,
 	},

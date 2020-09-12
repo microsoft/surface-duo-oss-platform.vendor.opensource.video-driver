@@ -58,6 +58,8 @@ int msm_comm_hfi_to_v4l2(int id, int value, u32 sid)
 			return V4L2_MPEG_VIDEO_H264_PROFILE_STEREO_HIGH;
 		case HFI_H264_PROFILE_MULTIVIEW_HIGH:
 			return V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH;
+		case HFI_H264_PROFILE_CONSTRAINED_HIGH:
+			return V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_HIGH;
 		default:
 			goto unknown_value;
 		}
@@ -95,6 +97,14 @@ int msm_comm_hfi_to_v4l2(int id, int value, u32 sid)
 			return V4L2_MPEG_VIDEO_H264_LEVEL_5_0;
 		case HFI_H264_LEVEL_51:
 			return V4L2_MPEG_VIDEO_H264_LEVEL_5_1;
+		case HFI_H264_LEVEL_52:
+			return V4L2_MPEG_VIDEO_H264_LEVEL_5_2;
+		case HFI_H264_LEVEL_6:
+			return V4L2_MPEG_VIDEO_H264_LEVEL_6_0;
+		case HFI_H264_LEVEL_61:
+			return V4L2_MPEG_VIDEO_H264_LEVEL_6_1;
+		case HFI_H264_LEVEL_62:
+			return V4L2_MPEG_VIDEO_H264_LEVEL_6_2;
 		default:
 			goto unknown_value;
 		}
@@ -268,6 +278,14 @@ static int h264_level_v4l2_to_hfi(int value, u32 sid)
 		return HFI_H264_LEVEL_5;
 	case V4L2_MPEG_VIDEO_H264_LEVEL_5_1:
 		return HFI_H264_LEVEL_51;
+	case V4L2_MPEG_VIDEO_H264_LEVEL_5_2:
+		return HFI_H264_LEVEL_52;
+	case V4L2_MPEG_VIDEO_H264_LEVEL_6_0:
+		return HFI_H264_LEVEL_6;
+	case V4L2_MPEG_VIDEO_H264_LEVEL_6_1:
+		return HFI_H264_LEVEL_61;
+	case V4L2_MPEG_VIDEO_H264_LEVEL_6_2:
+		return HFI_H264_LEVEL_62;
 	default:
 		goto unknown_value;
 	}
@@ -371,6 +389,8 @@ int msm_comm_v4l2_to_hfi(int id, int value, u32 sid)
 			return HFI_H264_PROFILE_STEREO_HIGH;
 		case V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH:
 			return HFI_H264_PROFILE_MULTIVIEW_HIGH;
+		case V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_HIGH:
+			return HFI_H264_PROFILE_CONSTRAINED_HIGH;
 		default:
 			return HFI_H264_PROFILE_HIGH;
 		}
