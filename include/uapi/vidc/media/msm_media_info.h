@@ -54,10 +54,10 @@ enum color_fmts {
 	 * Y_Scanlines: Height aligned to 512
 	 * UV_Scanlines: Height/2 aligned to 256
 	 * Total size = align(Y_Stride * Y_Scanlines
-	 *          + UV_Stride * UV_Scanlines, 4096)
+	 *          + UV_Stride * UV_Scanlines + 4096, 4096)
 	 */
 	COLOR_FMT_NV12,
-	/* Venus NV12:
+	/* Venus NV12_128:
 	 * YUV 4:2:0 image with a plane of 8 bit Y samples followed
 	 * by an interleaved U/V plane containing 8 bit 2x2 subsampled
 	 * colour difference samples.
@@ -89,7 +89,7 @@ enum color_fmts {
 	 * Y_Scanlines: Height aligned to 32
 	 * UV_Scanlines: Height/2 aligned to 16
 	 * Total size = align(Y_Stride * Y_Scanlines
-	 *          + UV_Stride * UV_Scanlines, 4096)
+	 *          + UV_Stride * UV_Scanlines + 4096, 4096)
 	 */
 	COLOR_FMT_NV12_128,
 	/* Venus NV21:
@@ -124,7 +124,7 @@ enum color_fmts {
 	 * Y_Scanlines: Height aligned to 512
 	 * UV_Scanlines: Height/2 aligned to 256
 	 * Total size = align(Y_Stride * Y_Scanlines
-	 *          + UV_Stride * UV_Scanlines, 4096)
+	 *          + UV_Stride * UV_Scanlines + 4096, 4096)
 	 */
 	COLOR_FMT_NV21,
 	/*
@@ -763,7 +763,7 @@ enum color_fmts {
 	 * Y_Scanlines: Height aligned to 32
 	 * UV_Scanlines: Height/2 aligned to 16
 	 * Total size = align(Y_Stride * Y_Scanlines
-	 *          + UV_Stride * UV_Scanlines, 4096)
+	 *          + UV_Stride * UV_Scanlines + 4096, 4096)
 	 */
 	COLOR_FMT_P010,
 	/* Venus NV12_512:
@@ -798,7 +798,7 @@ enum color_fmts {
 	 * Y_Scanlines: Height aligned to 512
 	 * UV_Scanlines: Height/2 aligned to 256
 	 * Total size = align((Y_Stride * Y_Scanlines
-	 *          + UV_Stride  * UV_Scanlines), 4096)
+	 *          + UV_Stride  * UV_Scanlines + 4096), 4096)
 	 */
 	COLOR_FMT_NV12_512,
 };
@@ -1251,14 +1251,10 @@ static inline unsigned int VENUS_BUFFER_SIZE(unsigned int color_fmt,
 	case COLOR_FMT_NV12:
 	case COLOR_FMT_P010:
 	case COLOR_FMT_NV12_512:
+	case COLOR_FMT_NV12_128:
 		uv_alignment = 4096;
 		y_plane = y_stride * y_sclines;
 		uv_plane = uv_stride * uv_sclines + uv_alignment;
-		size = y_plane + uv_plane;
-		break;
-	case COLOR_FMT_NV12_128:
-		y_plane = y_stride * y_sclines;
-		uv_plane = uv_stride * uv_sclines;
 		size = y_plane + uv_plane;
 		break;
 	case COLOR_FMT_NV12_UBWC:
