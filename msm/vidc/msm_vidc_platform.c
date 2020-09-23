@@ -1316,6 +1316,10 @@ static struct msm_vidc_common_data shima_common_data_v0[] = {
 		 */
 	},
 	{
+		.key = "qcom,max-image-load",
+		.value = 1048576, /* ((16384x16384)/256)@1fps */
+	},
+	{
 		.key = "qcom,max-mbpf",
 		.value = 138240, /* ((8192x4320)/256) */
 	},
@@ -1427,6 +1431,10 @@ static struct msm_vidc_common_data shima_common_data_v1[] = {
 		/**
 		 * (3840x2176)/256)@60fps decode
 		 */
+	},
+	{
+		.key = "qcom,max-image-load",
+		.value = 1048576, /* ((16384x16384)/256)@1fps */
 	},
 	{
 		.key = "qcom,max-mbpf",
@@ -1542,6 +1550,10 @@ static struct msm_vidc_common_data shima_common_data_v2[] = {
 		 */
 	},
 	{
+		.key = "qcom,max-image-load",
+		.value = 1048576, /* ((16384x16384)/256)@1fps */
+	},
+	{
 		.key = "qcom,max-mbpf",
 		.value = 130560, /* ((3840x2176)/256) x 4 */
 	},
@@ -1650,6 +1662,10 @@ static struct msm_vidc_common_data holi_common_data[] = {
 	{
 		.key = "qcom,max-hw-load",
 		.value = 489600, /* ((1088x1920)/256)@60fps */
+	},
+	{
+		.key = "qcom,max-image-load",
+		.value = 262144, /* ((8192x8192)/256)@1fps */
 	},
 	{
 		.key = "qcom,max-mbpf",
