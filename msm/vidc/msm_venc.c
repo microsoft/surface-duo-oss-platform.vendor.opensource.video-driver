@@ -4072,6 +4072,8 @@ int msm_venc_set_rotation(struct msm_vidc_inst *inst)
 	struct v4l2_ctrl *rotation = NULL;
 	struct hfi_device *hdev;
 	struct hfi_vpe_rotation_type vpe_rotation;
+	struct hfi_frame_size frame_sz;
+	struct v4l2_format *f;
 
 	hdev = inst->core->device;
 	rotation = get_ctrl(inst, V4L2_CID_ROTATE);
@@ -4095,6 +4097,30 @@ int msm_venc_set_rotation(struct msm_vidc_inst *inst)
 	if (rc) {
 		s_vpr_e(inst->sid, "Set rotation/flip failed\n");
 		return rc;
+	}
+
+	/* flip the output resolution if required */
+	if (vpe_rotation.rotation == HFI_ROTATE_90 ||
+		vpe_rotation.rotation == HFI_ROTATE_270) {
+		f = &inst->fmts[OUTPUT_PORT].v4l2_fmt;
+		frame_sz.buffer_type = HFI_BUFFER_OUTPUT;
+		frame_sz.width = f->fmt.pix_mp.height;
+		frame_sz.height = f->fmt.pix_mp.width;
+		/* firmware needs grid size in output where as
+		 * client sends out full resolution in output port */
+		if (is_grid_session(inst)) {
+			frame_sz.width = frame_sz.height = HEIC_GRID_DIMENSION;
+		}
+		s_vpr_h(inst->sid, "%s: output %dx%d\n", __func__,
+			frame_sz.width, frame_sz.height);
+		rc = call_hfi_op(hdev, session_set_property, inst->session,
+			HFI_PROPERTY_PARAM_FRAME_SIZE, &frame_sz, sizeof(frame_sz));
+		if (rc) {
+			s_vpr_e(inst->sid,
+				"%s: failed to set output frame size %d %d\n",
+				__func__, frame_sz.width, frame_sz.height);
+			return rc;
+		}
 	}
 
 	/* Mark static rotation/flip set */
