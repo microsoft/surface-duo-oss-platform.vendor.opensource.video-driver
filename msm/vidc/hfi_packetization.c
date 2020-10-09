@@ -545,6 +545,8 @@ int create_pkt_cmd_session_etb_decoder(
 	pkt->time_stamp_hi = upper_32_bits(input_frame->timestamp);
 	pkt->time_stamp_lo = lower_32_bits(input_frame->timestamp);
 	pkt->flags = input_frame->flags;
+	pkt->mark_target = 0xff;
+	pkt->mark_data = 0xff;
 	pkt->offset = input_frame->offset;
 	pkt->alloc_len = input_frame->alloc_len;
 	pkt->filled_len = input_frame->filled_len;
@@ -580,6 +582,8 @@ int create_pkt_cmd_session_etb_encoder(
 	pkt->time_stamp_hi = upper_32_bits(input_frame->timestamp);
 	pkt->time_stamp_lo = lower_32_bits(input_frame->timestamp);
 	pkt->flags = input_frame->flags;
+	pkt->mark_target = 0xff;
+	pkt->mark_data = 0xff;
 	pkt->offset = input_frame->offset;
 	pkt->alloc_len = input_frame->alloc_len;
 	pkt->filled_len = input_frame->filled_len;
