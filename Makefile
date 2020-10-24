@@ -27,11 +27,11 @@ endif
 endif
 
 # auto-detect subdirs
-ifeq (y, $(findstring y, $(CONFIG_ARCH_SM8150) $(CONFIG_ARCH_SM6150) $(CONFIG_ARCH_SA8195)))
+ifeq (y, $(findstring y, $(CONFIG_ARCH_SM8150) $(CONFIG_ARCH_SA6155) $(CONFIG_ARCH_SA8195)))
 include $(srctree)/techpack/video/config/gen3autovid.conf
 endif
 
-ifeq (y, $(findstring y, $(CONFIG_ARCH_SM8150) $(CONFIG_ARCH_SM6150) $(CONFIG_ARCH_SA8195)))
+ifeq (y, $(findstring y, $(CONFIG_ARCH_SM8150) $(CONFIG_ARCH_SA6155) $(CONFIG_ARCH_SA8195)))
 LINUXINCLUDE    += -include $(srctree)/techpack/video/config/gen3autovidconf.h
 endif
 
