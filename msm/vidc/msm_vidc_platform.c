@@ -1768,6 +1768,33 @@ static struct msm_vidc_common_data sm8150_common_data[] = {
 		.key = "qcom,fw-vpp-cycles",
 		.value = 166667,
 	},
+	{
+		.key = "qcom,prefetch_non_pix_buf_count",
+		.value = 1,
+	},
+	{
+		.key = "qcom,prefetch_non_pix_buf_size",
+		/*
+		 * Internal buffer size is calculated for secure decode session
+		 * of resolution 4k (4096x2160)
+		 * Internal buf size = calculate_scratch_size() +
+		 *      calculate_scratch1_size() + calculate_persist1_size()
+		 * Take maximum between VP9 10bit, HEVC 10bit, AVC, MPEG2 secure
+		 * decoder sessions
+		 */
+		.value = 209715200,
+	},
+	{
+		.key = "qcom,prefetch_pix_buf_count",
+		.value = 18,
+	},
+	{
+		.key = "qcom,prefetch_pix_buf_size",
+		/*
+		 * Calculated by VENUS_BUFFER_SIZE for 4096x2160 UBWC
+		 */
+		.value = 13434880,
+	},
 };
 
 static struct msm_vidc_common_data sm6150_common_data[] = {
@@ -1839,6 +1866,34 @@ static struct msm_vidc_common_data sm6150_common_data[] = {
 		.key = "qcom,no-cvp",
 		.value = 1,
 	},
+	{
+		.key = "qcom,prefetch_non_pix_buf_count",
+		.value = 1,
+	},
+	{
+		.key = "qcom,prefetch_non_pix_buf_size",
+		/*
+		 * Internal buffer size is calculated for secure decode session
+		 * of resolution 4k (3840x2160)
+		 * Internal buf size = calculate_scratch_size() +
+		 *      calculate_scratch1_size() + calculate_persist1_size()
+		 * Take maximum between VP9 10bit, HEVC 10bit, AVC, MPEG2 secure
+		 * decoder sessions
+		 */
+		.value = 198612992,
+	},
+	{
+		.key = "qcom,prefetch_pix_buf_count",
+		.value = 18,
+	},
+	{
+		.key = "qcom,prefetch_pix_buf_size",
+		/*
+		 * Calculated by VENUS_BUFFER_SIZE for 3840x2160 UBWC
+		 */
+		.value = 12599296,
+	},
+
 };
 
 static struct msm_vidc_efuse_data shima_efuse_data[] = {
