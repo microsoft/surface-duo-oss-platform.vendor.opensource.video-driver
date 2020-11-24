@@ -557,7 +557,8 @@ static struct msm_vidc_ctrl msm_venc_ctrls[] = {
 		.minimum = EXTRADATA_NONE,
 		.maximum = EXTRADATA_ADVANCED | EXTRADATA_ENC_INPUT_ROI |
 			EXTRADATA_ENC_INPUT_HDR10PLUS |
-			EXTRADATA_ENC_INPUT_CVP | EXTRADATA_ENC_INPUT_CROP,
+			EXTRADATA_ENC_INPUT_CROP |
+			EXTRADATA_ENC_INPUT_CVP,
 		.default_value = EXTRADATA_NONE,
 		.menu_skip_mask = 0,
 		.qmenu = NULL,
