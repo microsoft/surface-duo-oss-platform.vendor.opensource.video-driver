@@ -557,7 +557,8 @@ static struct msm_vidc_ctrl msm_venc_ctrls[] = {
 		.minimum = EXTRADATA_NONE,
 		.maximum = EXTRADATA_ADVANCED | EXTRADATA_ENC_INPUT_ROI |
 			EXTRADATA_ENC_INPUT_HDR10PLUS |
-			EXTRADATA_ENC_INPUT_CVP | EXTRADATA_ENC_INPUT_CROP,
+			EXTRADATA_ENC_INPUT_CROP |
+			EXTRADATA_ENC_INPUT_CVP | EXTRADATA_ENC_FRAME_QP,
 		.default_value = EXTRADATA_NONE,
 		.menu_skip_mask = 0,
 		.qmenu = NULL,
@@ -1864,7 +1865,8 @@ int msm_venc_s_ctrl(struct msm_vidc_inst *inst, struct v4l2_ctrl *ctrl)
 				msm_vidc_calculate_enc_input_extra_size(inst);
 		}
 
-		if (inst->prop.extradata_ctrls & EXTRADATA_ADVANCED) {
+		if ((inst->prop.extradata_ctrls & EXTRADATA_ADVANCED) ||
+		(inst->prop.extradata_ctrls & EXTRADATA_ENC_FRAME_QP)) {
 			f = &inst->fmts[OUTPUT_PORT].v4l2_fmt;
 			f->fmt.pix_mp.num_planes = 2;
 			f->fmt.pix_mp.plane_fmt[1].sizeimage =
@@ -4072,6 +4074,8 @@ int msm_venc_set_rotation(struct msm_vidc_inst *inst)
 	struct v4l2_ctrl *rotation = NULL;
 	struct hfi_device *hdev;
 	struct hfi_vpe_rotation_type vpe_rotation;
+	struct hfi_frame_size frame_sz;
+	struct v4l2_format *f;
 
 	hdev = inst->core->device;
 	rotation = get_ctrl(inst, V4L2_CID_ROTATE);
@@ -4095,6 +4099,30 @@ int msm_venc_set_rotation(struct msm_vidc_inst *inst)
 	if (rc) {
 		s_vpr_e(inst->sid, "Set rotation/flip failed\n");
 		return rc;
+	}
+
+	/* flip the output resolution if required */
+	if (vpe_rotation.rotation == HFI_ROTATE_90 ||
+		vpe_rotation.rotation == HFI_ROTATE_270) {
+		f = &inst->fmts[OUTPUT_PORT].v4l2_fmt;
+		frame_sz.buffer_type = HFI_BUFFER_OUTPUT;
+		frame_sz.width = f->fmt.pix_mp.height;
+		frame_sz.height = f->fmt.pix_mp.width;
+		/* firmware needs grid size in output where as
+		 * client sends out full resolution in output port */
+		if (is_grid_session(inst)) {
+			frame_sz.width = frame_sz.height = HEIC_GRID_DIMENSION;
+		}
+		s_vpr_h(inst->sid, "%s: output %dx%d\n", __func__,
+			frame_sz.width, frame_sz.height);
+		rc = call_hfi_op(hdev, session_set_property, inst->session,
+			HFI_PROPERTY_PARAM_FRAME_SIZE, &frame_sz, sizeof(frame_sz));
+		if (rc) {
+			s_vpr_e(inst->sid,
+				"%s: failed to set output frame size %d %d\n",
+				__func__, frame_sz.width, frame_sz.height);
+			return rc;
+		}
 	}
 
 	/* Mark static rotation/flip set */
@@ -4707,6 +4735,11 @@ int msm_venc_set_extradata(struct msm_vidc_inst *inst)
 		// Enable Advanced Extradata - LTR Info
 		msm_comm_set_extradata(inst,
 			HFI_PROPERTY_PARAM_VENC_LTR_INFO, 0x1);
+
+	if (inst->prop.extradata_ctrls & EXTRADATA_ENC_FRAME_QP)
+		// Enable AvgQP Extradata
+		msm_comm_set_extradata(inst,
+			HFI_PROPERTY_PARAM_VENC_FRAME_QP_EXTRADATA, 0x1);
 
 	if (inst->prop.extradata_ctrls & EXTRADATA_ENC_INPUT_ROI)
 		// Enable ROIQP Extradata

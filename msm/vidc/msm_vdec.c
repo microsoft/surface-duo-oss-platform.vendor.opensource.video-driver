@@ -1447,6 +1447,7 @@ int msm_vdec_set_extradata(struct msm_vidc_inst *inst)
 	uint32_t display_info = HFI_PROPERTY_PARAM_VUI_DISPLAY_INFO_EXTRADATA;
 	u32 value = 0x0;
 	u32 codec;
+	u32 vpu_ver = inst->core->platform_data->vpu_ver;
 
 	codec = get_v4l2_codec(inst);
 	switch (codec) {
@@ -1471,9 +1472,9 @@ int msm_vdec_set_extradata(struct msm_vidc_inst *inst)
 		HFI_PROPERTY_PARAM_VDEC_INTERLACE_VIDEO_EXTRADATA, 0x1);
 	msm_comm_set_extradata(inst, display_info, 0x1);
 
-	if (codec == V4L2_PIX_FMT_VP9 || codec == V4L2_PIX_FMT_HEVC) {
-		msm_comm_set_extradata(inst,
-			HFI_PROPERTY_PARAM_VDEC_HDR10_HIST_EXTRADATA, 0x1);
+	if ((vpu_ver != VPU_VERSION_AR50) && (codec == V4L2_PIX_FMT_VP9 || codec == V4L2_PIX_FMT_HEVC)) {
+			msm_comm_set_extradata(inst,
+				HFI_PROPERTY_PARAM_VDEC_HDR10_HIST_EXTRADATA, 0x1);
 	}
 
 	msm_comm_set_extradata(inst,
