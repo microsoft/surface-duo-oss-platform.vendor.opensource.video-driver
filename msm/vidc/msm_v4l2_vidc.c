@@ -14,6 +14,7 @@
 #include "vidc_hfi_api.h"
 #include "msm_v4l2_private.h"
 #include "msm_vidc_clocks.h"
+#include <soc/qcom/boot_stats.h>
 
 #define BASE_DEVICE_NUMBER 32
 
@@ -484,6 +485,8 @@ static int msm_vidc_probe_vidc_device(struct platform_device *pdev)
 	struct device *dev = NULL;
 	int nr = BASE_DEVICE_NUMBER;
 
+	place_marker("M - DRIVER Video Start");
+
 	if (!vidc_driver) {
 		d_vpr_e("Invalid vidc driver\n");
 		return -EINVAL;
@@ -596,6 +599,7 @@ static int msm_vidc_probe_vidc_device(struct platform_device *pdev)
 		goto err_fail_sub_device_probe;
 	}
 
+	place_marker("M - DRIVER Video Ready");
 	return rc;
 
 err_fail_sub_device_probe:
