@@ -39,7 +39,8 @@ struct msm_vidc_core_ops core_ops_ar50 = {
 	.calc_freq = msm_vidc_calc_freq_ar50_lt,
 	.decide_work_route = NULL,
 	.decide_work_mode = msm_vidc_decide_work_mode_ar50_lt,
-	.decide_core_and_power_mode = NULL,
+	.decide_core_and_power_mode =
+		msm_vidc_decide_core_and_power_mode_ar50lt,
 	.calc_bw = NULL,
 };
 struct msm_vidc_core_ops core_ops_iris1 = {
