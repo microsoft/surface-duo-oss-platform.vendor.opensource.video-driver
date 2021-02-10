@@ -884,7 +884,7 @@ static struct msm_vidc_codec_capability sm8150_capabilities[] = {
 static struct msm_vidc_codec_capability sm6150_capabilities[] = {
 	/* {cap_type, domains, codecs, min, max, step_size, default_value} */
 	{CAP_FRAME_WIDTH, DEC, CODECS_ALL, 96, 4096, 1, 1920},
-	{CAP_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 2160, 1, 1080},
+	{CAP_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 2176, 1, 1080},
 	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 96, 4096, 1, 1920},
 	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 96, 2160, 1, 1080},
 	/*  ((4096 * 2176) / 256) */
