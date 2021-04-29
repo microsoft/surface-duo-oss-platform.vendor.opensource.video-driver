@@ -68,15 +68,15 @@ static int __disable_subcaches(struct venus_hfi_device *device, u32 sid);
 static int __power_collapse(struct venus_hfi_device *device, bool force);
 static int venus_hfi_noc_error_info(void *dev);
 static int __set_ubwc_config(struct venus_hfi_device *device);
-static void __power_off_common(struct venus_hfi_device *device);
+static int __power_off_common(struct venus_hfi_device *device);
 static int __prepare_pc_common(struct venus_hfi_device *device);
-static void __raise_interrupt_common(struct venus_hfi_device *device, u32 sid);
+static int __raise_interrupt_common(struct venus_hfi_device *device, u32 sid);
 static bool __watchdog_common(u32 intr_status);
-static void __noc_error_info_common(struct venus_hfi_device *device);
-static void __core_clear_interrupt_common(struct venus_hfi_device *device);
+static int __noc_error_info_common(struct venus_hfi_device *device);
+static int __core_clear_interrupt_common(struct venus_hfi_device *device);
 static inline int __boot_firmware_common(
 		struct venus_hfi_device *device, u32 sid);
-static void __setup_ucregion_memory_map_common(
+static int __setup_ucregion_memory_map_common(
 		struct venus_hfi_device *device, u32 sid);
 
 struct venus_hfi_vpu_ops vpu4_ops = {
@@ -1455,10 +1455,12 @@ err_q_null:
 	return result;
 }
 
-static void __raise_interrupt_common(struct venus_hfi_device *device, u32 sid)
+static int __raise_interrupt_common(struct venus_hfi_device *device, u32 sid)
 {
 	__write_register(device, CPU_IC_SOFTINT,
 				1 << CPU_IC_SOFTINT_H2A_SHFT, sid);
+
+	return 0;
 }
 
 static int __iface_cmdq_write(struct venus_hfi_device *device,
@@ -1806,7 +1808,7 @@ static int __get_qdss_iommu_virtual_addr(struct venus_hfi_device *dev,
 	return rc;
 }
 
-static void __setup_ucregion_memory_map_common(struct venus_hfi_device *device,
+static int __setup_ucregion_memory_map_common(struct venus_hfi_device *device,
 	u32 sid)
 {
 	__write_register(device, UC_REGION_ADDR,
@@ -1821,6 +1823,8 @@ static void __setup_ucregion_memory_map_common(struct venus_hfi_device *device,
 	if (device->qdss.align_device_addr)
 		__write_register(device, MMAP_ADDR,
 				(u32)device->qdss.align_device_addr, sid);
+
+	return 0;
 }
 
 static int __interface_queues_init(struct venus_hfi_device *dev)
@@ -2155,13 +2159,13 @@ static int venus_hfi_core_release(void *dev)
 	return rc;
 }
 
-static void __core_clear_interrupt_common(struct venus_hfi_device *device)
+static int __core_clear_interrupt_common(struct venus_hfi_device *device)
 {
 	u32 intr_status = 0, mask = 0;
 
 	if (!device) {
 		d_vpr_e("%s: NULL device\n", __func__);
-		return;
+		return 0;
 	}
 
 	intr_status = __read_register(device, WRAPPER_INTR_STATUS, DEFAULT_SID);
@@ -2180,6 +2184,8 @@ static void __core_clear_interrupt_common(struct venus_hfi_device *device)
 
 	__write_register(device, CPU_CS_A2HSOFTINTCLR, 1, DEFAULT_SID);
 	__write_register(device, WRAPPER_INTR_CLEAR, intr_status, DEFAULT_SID);
+
+	return 0;
 }
 
 static int venus_hfi_core_trigger_ssr(void *device,
@@ -4343,10 +4349,10 @@ fail_vote_buses:
 	return rc;
 }
 
-static void __power_off_common(struct venus_hfi_device *device)
+static int __power_off_common(struct venus_hfi_device *device)
 {
 	if (!device->power_enabled)
-		return;
+		return 0;
 
 	if (!(device->intr_status & WRAPPER_INTR_STATUS_A2HWD_BMSK))
 		disable_irq_nosync(device->hal_data->irq);
@@ -4362,6 +4368,8 @@ static void __power_off_common(struct venus_hfi_device *device)
 	if (__unvote_buses(device, DEFAULT_SID))
 		d_vpr_e("Failed to unvote for buses\n");
 	device->power_enabled = false;
+
+	return 0;
 }
 
 static inline int __suspend(struct venus_hfi_device *device)
@@ -4624,14 +4632,14 @@ static int venus_hfi_get_core_capabilities(void *dev)
 	return rc;
 }
 
-static void __noc_error_info_common(struct venus_hfi_device *device)
+static int __noc_error_info_common(struct venus_hfi_device *device)
 {
 	u32 val = 0;
 	u32 sid = DEFAULT_SID;
 
 	if (!device) {
 		d_vpr_e("%s: null device\n", __func__);
-		return;
+		return 0;
 	}
 
 	if (__read_register(device, VCODEC_CORE0_VIDEO_NOC_BASE_OFFS +
@@ -4671,6 +4679,8 @@ static void __noc_error_info_common(struct venus_hfi_device *device)
 				VCODEC_CORE0_VIDEO_NOC_ERR_ERRLOG3_HIGH_OFFS, sid);
 		d_vpr_e("VCODEC_NOC_ERR_ERRLOG3_HIGH: %#x\n", val);
 	}
+
+	return 0;
 }
 
 static int venus_hfi_noc_error_info(void *dev)
