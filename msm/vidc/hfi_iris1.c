@@ -6,7 +6,7 @@
 #include "hfi_common.h"
 #include "hfi_io_common.h"
 
-void __interrupt_init_iris1(struct venus_hfi_device *device, u32 sid)
+int __interrupt_init_iris1(struct venus_hfi_device *device, u32 sid)
 {
 	u32 mask_val = 0;
 
@@ -17,9 +17,11 @@ void __interrupt_init_iris1(struct venus_hfi_device *device, u32 sid)
 	mask_val &= ~(WRAPPER_INTR_MASK_A2HWD_BMSK |
 			WRAPPER_INTR_MASK_A2HCPU_BMSK);
 	__write_register(device, WRAPPER_INTR_MASK, mask_val, sid);
+
+	return 0;
 }
 
-void __setup_ucregion_memory_map_iris1(struct venus_hfi_device *device, u32 sid)
+int __setup_ucregion_memory_map_iris1(struct venus_hfi_device *device, u32 sid)
 {
 	/* initialize CPU QTBL & UCREGION */
 	__write_register(device, UC_REGION_ADDR,
@@ -50,11 +52,15 @@ void __setup_ucregion_memory_map_iris1(struct venus_hfi_device *device, u32 sid)
 		__write_register(device, HFI_DSP_UC_REGION_SIZE,
 			device->dsp_iface_q_table.mem_data.size, sid);
 	}
+
+	return 0;
 }
 
-void __clock_config_on_enable_iris1(struct venus_hfi_device *device, u32 sid)
+int  __clock_config_on_enable_iris1(struct venus_hfi_device *device, u32 sid)
 {
 	__write_register(device, WRAPPER_CPU_CGC_DIS, 0, sid);
 	__write_register(device, WRAPPER_CPU_CLOCK_CONFIG, 0, sid);
+
+	return 0;
 }
 
