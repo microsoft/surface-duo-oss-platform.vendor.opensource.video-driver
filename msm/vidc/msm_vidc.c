@@ -434,7 +434,7 @@ int msm_vidc_qbuf(void *instance, struct media_device *mdev,
 	timestamp_us = (s64)((b->timestamp.tv_sec * 1000000) +
 		b->timestamp.tv_usec);
 	if (is_decode_session(inst) && b->type == INPUT_MPLANE &&
-		!is_heif_decoder(inst)) {
+		is_ts_reorder_allowed(inst)) {
 		if (inst->flush_timestamps)
 			msm_comm_release_timestamps(inst);
 		inst->flush_timestamps = false;
@@ -516,7 +516,7 @@ int msm_vidc_dqbuf(void *instance, struct v4l2_buffer *b)
 	if (is_decode_session(inst) &&
 		b->type == OUTPUT_MPLANE &&
 		!(b->flags & V4L2_BUF_FLAG_CODECCONFIG) &&
-		!is_heif_decoder(inst))
+		is_ts_reorder_allowed(inst))
 		msm_comm_fetch_ts_framerate(inst, b);
 
 	return rc;
@@ -599,14 +599,31 @@ int msm_vidc_enum_framesizes(void *instance, struct v4l2_frmsizeenum *fsize)
 
 	capability = &inst->capability;
 	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
-	fsize->stepwise.min_width = capability->cap[CAP_FRAME_WIDTH].min;
-	fsize->stepwise.max_width = capability->cap[CAP_FRAME_WIDTH].max;
-	fsize->stepwise.step_width =
-		capability->cap[CAP_FRAME_WIDTH].step_size;
-	fsize->stepwise.min_height = capability->cap[CAP_FRAME_HEIGHT].min;
-	fsize->stepwise.max_height = capability->cap[CAP_FRAME_HEIGHT].max;
-	fsize->stepwise.step_height =
-		capability->cap[CAP_FRAME_HEIGHT].step_size;
+	if(is_grid_session(inst)) {
+		fsize->stepwise.min_width =
+			capability->cap[CAP_HEIC_IMAGE_FRAME_WIDTH].min;
+		fsize->stepwise.max_width =
+			capability->cap[CAP_HEIC_IMAGE_FRAME_WIDTH].max;
+		fsize->stepwise.step_width =
+			capability->cap[CAP_HEIC_IMAGE_FRAME_WIDTH].step_size;
+		fsize->stepwise.min_height =
+			capability->cap[CAP_HEIC_IMAGE_FRAME_HEIGHT].min;
+		fsize->stepwise.max_height =
+			capability->cap[CAP_HEIC_IMAGE_FRAME_HEIGHT].max;
+		fsize->stepwise.step_height =
+			capability->cap[CAP_HEIC_IMAGE_FRAME_HEIGHT].step_size;
+
+	}
+	else {
+		fsize->stepwise.min_width = capability->cap[CAP_FRAME_WIDTH].min;
+		fsize->stepwise.max_width = capability->cap[CAP_FRAME_WIDTH].max;
+		fsize->stepwise.step_width =
+			capability->cap[CAP_FRAME_WIDTH].step_size;
+		fsize->stepwise.min_height = capability->cap[CAP_FRAME_HEIGHT].min;
+		fsize->stepwise.max_height = capability->cap[CAP_FRAME_HEIGHT].max;
+		fsize->stepwise.step_height =
+			capability->cap[CAP_FRAME_HEIGHT].step_size;
+	}
 	return 0;
 }
 EXPORT_SYMBOL(msm_vidc_enum_framesizes);
@@ -1251,7 +1268,9 @@ static void msm_vidc_buf_queue(struct vb2_buffer *vb2)
 
 	if (rc) {
 		print_vb2_buffer("failed vb2-qbuf", inst, vb2);
-		msm_comm_generate_session_error(inst);
+		vb2_buffer_done(vb2, VB2_BUF_STATE_DONE);
+		msm_vidc_queue_v4l2_event(inst,
+			V4L2_EVENT_MSM_VIDC_SYS_ERROR);
 	}
 }
 
@@ -1489,6 +1508,14 @@ static struct msm_vidc_inst_smem_ops  msm_vidc_smem_ops = {
 	.smem_drain = msm_smem_memory_drain,
 };
 
+static void close_helper(struct kref *kref)
+{
+	struct msm_vidc_inst *inst = container_of(kref,
+			struct msm_vidc_inst, kref);
+
+	msm_vidc_destroy(inst);
+}
+
 void *msm_vidc_open(int core_id, int session_type)
 {
 	struct msm_vidc_inst *inst = NULL;
@@ -1615,7 +1642,9 @@ void *msm_vidc_open(int core_id, int session_type)
 	if (rc) {
 		s_vpr_e(inst->sid,
 			"Failed to move video instance to init state\n");
-		goto fail_init;
+		kref_put(&inst->kref, close_helper);
+		inst = NULL;
+		goto err_invalid_core;
 	}
 
 	if (msm_comm_check_for_inst_overload(core)) {
@@ -1663,6 +1692,7 @@ fail_bufq_capture:
 	DEINIT_MSM_VIDC_LIST(&inst->outputbufs);
 	DEINIT_MSM_VIDC_LIST(&inst->cvpbufs);
 	DEINIT_MSM_VIDC_LIST(&inst->registeredbufs);
+	DEINIT_MSM_VIDC_LIST(&inst->refbufs);
 	DEINIT_MSM_VIDC_LIST(&inst->eosbufs);
 	DEINIT_MSM_VIDC_LIST(&inst->input_crs);
 	DEINIT_MSM_VIDC_LIST(&inst->etb_data);
@@ -1791,6 +1821,7 @@ int msm_vidc_destroy(struct msm_vidc_inst *inst)
 	DEINIT_MSM_VIDC_LIST(&inst->outputbufs);
 	DEINIT_MSM_VIDC_LIST(&inst->cvpbufs);
 	DEINIT_MSM_VIDC_LIST(&inst->registeredbufs);
+	DEINIT_MSM_VIDC_LIST(&inst->refbufs);
 	DEINIT_MSM_VIDC_LIST(&inst->eosbufs);
 	DEINIT_MSM_VIDC_LIST(&inst->input_crs);
 	DEINIT_MSM_VIDC_LIST(&inst->etb_data);
@@ -1812,14 +1843,6 @@ int msm_vidc_destroy(struct msm_vidc_inst *inst)
 	put_sid(inst->sid);
 	kfree(inst);
 	return 0;
-}
-
-static void close_helper(struct kref *kref)
-{
-	struct msm_vidc_inst *inst = container_of(kref,
-			struct msm_vidc_inst, kref);
-
-	msm_vidc_destroy(inst);
 }
 
 int msm_vidc_close(void *instance)

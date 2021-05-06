@@ -1066,7 +1066,7 @@ static int __vote_bandwidth(struct bus_info *bus,
 	int rc = 0;
 
 	s_vpr_p(sid, "Voting bus %s to ab %llu kbps\n", bus->name, bw_kbps);
-	rc = icc_set_bw(bus->path, kbps_to_icc(bw_kbps), 0);
+	rc = icc_set_bw(bus->path, bw_kbps, 0);
 	if (rc)
 		s_vpr_e(sid, "Failed voting bus %s to ab %llu, rc=%d\n",
 				bus->name, bw_kbps, rc);
@@ -2183,7 +2183,8 @@ static void __core_clear_interrupt_common(struct venus_hfi_device *device)
 }
 
 static int venus_hfi_core_trigger_ssr(void *device,
-		enum hal_ssr_trigger_type type)
+	enum hal_ssr_trigger_type ssr_type, u32 sub_client_id,
+	u32 test_addr)
 {
 	struct hfi_cmd_sys_test_ssr_packet pkt;
 	int rc = 0;
@@ -2197,7 +2198,8 @@ static int venus_hfi_core_trigger_ssr(void *device,
 	dev = device;
 	mutex_lock(&dev->lock);
 
-	rc = call_hfi_pkt_op(dev, ssr_cmd, type, &pkt);
+	rc = call_hfi_pkt_op(dev, ssr_cmd, &pkt, ssr_type,
+			sub_client_id, test_addr);
 	if (rc) {
 		d_vpr_e("core_ping: failed to create packet\n");
 		goto err_create_pkt;
@@ -2385,18 +2387,20 @@ static int venus_hfi_session_end(void *sess)
 	struct venus_hfi_device *device = &venus_hfi_dev;
 	int rc = 0;
 
-	if (!__is_session_valid(device, session, __func__))
-		return -EINVAL;
-
 	mutex_lock(&device->lock);
+	if (!__is_session_valid(device, session, __func__)) {
+		rc = -EINVAL;
+		goto exit;
+	}
+
 	if (msm_vidc_fw_coverage) {
 		if (__sys_set_coverage(device, msm_vidc_fw_coverage,
 				session->sid))
 			s_vpr_e(session->sid, "Fw_coverage msg ON failed\n");
 	}
 	rc = __send_session_cmd(session, HFI_CMD_SYS_SESSION_END);
+exit:
 	mutex_unlock(&device->lock);
-
 	return rc;
 }
 
@@ -4575,16 +4579,17 @@ static int venus_hfi_get_fw_info(void *dev, struct hal_fw_info *fw_info)
 			smem_table_ptr + smem_image_index_venus,
 			VENUS_VERSION_LENGTH);
 
-	while (version[i++] != 'V' && i < VENUS_VERSION_LENGTH)
+	while (version[i] != 'V' && version[i] != 'v' &&
+			++i < VENUS_VERSION_LENGTH)
 		;
 
-	if (i == VENUS_VERSION_LENGTH - 1) {
+	if (i >= VENUS_VERSION_LENGTH - 1) {
 		d_vpr_e("Venus version string is not proper\n");
 		fw_info->version[0] = '\0';
 		goto fail_version_string;
 	}
 
-	for (i--; i < VENUS_VERSION_LENGTH && j < VENUS_VERSION_LENGTH - 1; i++)
+	for (; i < VENUS_VERSION_LENGTH && j < VENUS_VERSION_LENGTH - 1; i++)
 		fw_info->version[j++] = version[i];
 	fw_info->version[j] = '\0';
 

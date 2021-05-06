@@ -394,6 +394,8 @@ struct hfi_buffer_info {
 	(HFI_PROPERTY_CONFIG_VENC_COMMON_START + 0x015)
 #define HFI_PROPERTY_CONFIG_CVP_SKIP_RATIO			\
 	(HFI_PROPERTY_CONFIG_VENC_COMMON_START + 0x016)
+#define HFI_PROPERTY_CONFIG_VENC_AUTO_FRAME_RATE	\
+		(HFI_PROPERTY_CONFIG_VENC_COMMON_START + 0x017)
 
 #define HFI_PROPERTY_PARAM_VPE_COMMON_START				\
 	(HFI_DOMAIN_BASE_VPE + HFI_ARCH_COMMON_OFFSET + 0x7000)
@@ -854,6 +856,8 @@ struct hfi_aspect_ratio {
 #define HFI_TEST_SSR_SW_ERR_FATAL	0x1
 #define HFI_TEST_SSR_SW_DIV_BY_ZERO	0x2
 #define HFI_TEST_SSR_HW_WDOG_IRQ	0x3
+#define HFI_TEST_SSR_NOC_ERROR		0x4
+#define HFI_TEST_SSR_VCODEC_HUNG	0x5
 
 struct vidc_hal_cmd_pkt_hdr {
 	u32 size;
@@ -1106,6 +1110,7 @@ struct hfi_cmd_sys_test_ssr_packet {
 	u32 size;
 	u32 packet_type;
 	u32 trigger_type;
+	u32 rg_data[1];
 };
 
 struct hfi_hdr10_pq_sei {

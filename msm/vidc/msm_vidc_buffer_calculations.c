@@ -142,6 +142,7 @@
 
 #define NUM_SLIST_BUF_H264            (256 + 32)
 #define SIZE_SLIST_BUF_H264           512
+#define SIZE_SEI_USERDATA             4096
 
 #define LCU_MAX_SIZE_PELS 64
 #define LCU_MIN_SIZE_PELS 16
@@ -263,6 +264,7 @@
 #define HFI_VENUS_HEIGHT_ALIGNMENT 32
 
 #define SYSTEM_LAL_TILE10 192
+#define NUM_MBS_360P (((480 + 15) >> 4) * ((360 + 15) >> 4))
 #define NUM_MBS_720P (((1280 + 15) >> 4) * ((720 + 15) >> 4))
 #define NUM_MBS_4k (((4096 + 15) >> 4) * ((2304 + 15) >> 4))
 #define MB_SIZE_IN_PIXEL (16 * 16)
@@ -318,7 +320,8 @@ static inline u32 calculate_vp8e_scratch1_size(struct msm_vidc_inst *inst,
 	u32 width, u32 height, u32 num_ref, bool ten_bit, u32 num_vpp_pipes);
 
 static inline u32 calculate_enc_scratch2_size(struct msm_vidc_inst *inst,
-	u32 width, u32 height, u32 num_ref, bool ten_bit);
+	u32 width, u32 height, u32 num_ref, bool ten_bit, bool downscale,
+	u32 rotation_val, u32 flip);
 
 static inline u32 calculate_enc_persist_size(void);
 
@@ -491,17 +494,17 @@ int msm_vidc_get_num_ref_frames(struct msm_vidc_inst *inst)
 	max_layer = get_ctrl(inst,
 		V4L2_CID_MPEG_VIDC_VIDEO_HEVC_MAX_HIER_CODING_LAYER);
 	if (frame_t->val == V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P &&
-		max_layer->val > 0) {
+		max_layer->val > 1) {
 		codec = get_v4l2_codec(inst);
 		/* LTR and B - frame not supported with hybrid HP */
 		if (inst->hybrid_hp)
-			num_ref = (max_layer->val - 1);
+			num_ref = (max_layer->val + 1) >> 1;
 		else if (codec == V4L2_PIX_FMT_HEVC)
 			num_ref = ((max_layer->val + 1) / 2) + ltr_count;
-		else if ((codec == V4L2_PIX_FMT_H264) && (max_layer->val <= 4))
-			num_ref = ((1 << (max_layer->val - 1)) - 1) + ltr_count;
+		else if ((codec == V4L2_PIX_FMT_H264) && (max_layer->val < 4))
+			num_ref = (max_layer->val - 1) + ltr_count;
 		else
-			num_ref = ((max_layer->val + 1) / 2) + ltr_count;
+			num_ref = max_layer->val + ltr_count;
 	}
 
 	if (is_hier_b_session(inst)) {
@@ -515,9 +518,10 @@ int msm_vidc_get_encoder_internal_buffer_sizes(struct msm_vidc_inst *inst)
 {
 	struct msm_vidc_enc_buff_size_calculators *enc_calculators;
 	u32 width, height, i, num_ref, num_vpp_pipes;
-	bool is_tenbit = false;
+	u32 rotation_val = 0, flip = 0;
+	bool is_tenbit = false, is_downscale = false;
 	int num_bframes;
-	struct v4l2_ctrl *bframe;
+	struct v4l2_ctrl *bframe, *rotation, *hflip, *vflip;
 	struct v4l2_format *f;
 
 	if (!inst || !inst->core || !inst->core->platform_data) {
@@ -544,18 +548,30 @@ int msm_vidc_get_encoder_internal_buffer_sizes(struct msm_vidc_inst *inst)
 		return -EINVAL;
 	}
 
-	f = &inst->fmts[OUTPUT_PORT].v4l2_fmt;
-	width = f->fmt.pix_mp.width;
-	height = f->fmt.pix_mp.height;
 	bframe = get_ctrl(inst, V4L2_CID_MPEG_VIDEO_B_FRAMES);
 	num_bframes = bframe->val;
 	if (num_bframes < 0) {
 		s_vpr_e(inst->sid, "%s: get num bframe failed\n", __func__);
 		return -EINVAL;
 	}
+	f = &inst->fmts[OUTPUT_PORT].v4l2_fmt;
+	rotation = get_ctrl(inst, V4L2_CID_ROTATE);
+	rotation_val = rotation->val;
+	if (rotation_val == 90 || rotation_val == 270) {
+		/* Internal buffer size calculators are based on rotated w x h */
+		width = f->fmt.pix_mp.height;
+		height = f->fmt.pix_mp.width;
+	} else {
+		width = f->fmt.pix_mp.width;
+		height = f->fmt.pix_mp.height;
+	}
+	hflip = get_ctrl(inst, V4L2_CID_HFLIP);
+	vflip = get_ctrl(inst, V4L2_CID_VFLIP);
+	flip = hflip->val | vflip->val;
 
 	num_ref = msm_vidc_get_num_ref_frames(inst);
 	is_tenbit = (inst->bit_depth == MSM_VIDC_BIT_DEPTH_10);
+	is_downscale = vidc_scalar_enabled(inst);
 
 	for (i = 0; i < HAL_BUFFER_MAX; i++) {
 		struct hal_buffer_requirements *curr_req;
@@ -581,7 +597,7 @@ int msm_vidc_get_encoder_internal_buffer_sizes(struct msm_vidc_inst *inst)
 			curr_req->buffer_size =
 				enc_calculators->calculate_scratch2_size(
 					inst, width, height, num_ref,
-					is_tenbit);
+					is_tenbit, is_downscale, rotation_val, flip);
 			valid_buffer_type = true;
 		} else if (curr_req->buffer_type ==
 			HAL_BUFFER_INTERNAL_PERSIST) {
@@ -861,7 +877,7 @@ static int msm_vidc_get_extra_output_buff_count(struct msm_vidc_inst *inst)
 	return extra_output_count;
 }
 
-u32 msm_vidc_calculate_dec_input_frame_size(struct msm_vidc_inst *inst)
+u32 msm_vidc_calculate_dec_input_frame_size(struct msm_vidc_inst *inst, u32 buffer_size_limit)
 {
 	u32 frame_size, num_mbs;
 	u32 div_factor = 1;
@@ -895,9 +911,11 @@ u32 msm_vidc_calculate_dec_input_frame_size(struct msm_vidc_inst *inst)
 	 * For targets that doesn't support 4k, consider max mb's for that
 	 * target and allocate max input buffer size for the same
 	 */
-	if (base_res_mbs > inst->capability.cap[CAP_MBS_PER_FRAME].max) {
+	if (inst->core->platform_data->vpu_ver == VPU_VERSION_AR50_LITE) {
 		base_res_mbs = inst->capability.cap[CAP_MBS_PER_FRAME].max;
 		div_factor = 1;
+		if (num_mbs < NUM_MBS_720P)
+			base_res_mbs = base_res_mbs * 2;
 	}
 	/* For HEIF image, use the actual resolution to calc buffer size */
 	if (is_heif_decoder(inst)) {
@@ -908,13 +926,13 @@ u32 msm_vidc_calculate_dec_input_frame_size(struct msm_vidc_inst *inst)
 	frame_size = base_res_mbs * MB_SIZE_IN_PIXEL * 3 / 2 / div_factor;
 
 	 /* multiply by 10/8 (1.25) to get size for 10 bit case */
-	if ((f->fmt.pix_mp.pixelformat == V4L2_PIX_FMT_VP9) ||
-		(f->fmt.pix_mp.pixelformat == V4L2_PIX_FMT_HEVC))
+	if ((f->fmt.pix_mp.pixelformat == V4L2_PIX_FMT_VP9 ||
+		f->fmt.pix_mp.pixelformat == V4L2_PIX_FMT_HEVC) &&
+		inst->core->platform_data->vpu_ver != VPU_VERSION_AR50_LITE)
 		frame_size = frame_size + (frame_size >> 2);
 
-	if (inst->buffer_size_limit &&
-		(inst->buffer_size_limit < frame_size)) {
-		frame_size = inst->buffer_size_limit;
+	if (buffer_size_limit && (buffer_size_limit < frame_size)) {
+		frame_size = buffer_size_limit;
 		s_vpr_h(inst->sid, "input buffer size limited to %d\n",
 			frame_size);
 	} else {
@@ -970,8 +988,9 @@ u32 msm_vidc_calculate_enc_output_frame_size(struct msm_vidc_inst *inst)
 	f = &inst->fmts[OUTPUT_PORT].v4l2_fmt;
 	/*
 	 * Encoder output size calculation: 32 Align width/height
-	 * For resolution < 720p : YUVsize * 4
-	 * For resolution > 720p & <= 4K : YUVsize / 2
+	 * For CQ or heic session : YUVsize * 2
+	 * For resolution <= 480x360p : YUVsize * 2
+	 * For resolution > 360p & <= 4K : YUVsize / 2
 	 * For resolution > 4k : YUVsize / 4
 	 * Initially frame_size = YUVsize * 2;
 	 */
@@ -984,8 +1003,12 @@ u32 msm_vidc_calculate_enc_output_frame_size(struct msm_vidc_inst *inst)
 	mbs_per_frame = NUM_MBS_PER_FRAME(width, height);
 	frame_size = (width * height * 3);
 
-	if (mbs_per_frame < NUM_MBS_720P)
-		frame_size = frame_size << 1;
+	if (inst->rc_type == V4L2_MPEG_VIDEO_BITRATE_MODE_CQ ||
+		is_grid_session(inst) || is_image_session(inst))
+		goto calc_done;
+
+	if (mbs_per_frame <= NUM_MBS_360P)
+		(void)frame_size; /* Default frame_size = YUVsize * 2 */
 	else if (mbs_per_frame <= NUM_MBS_4k)
 		frame_size = frame_size >> 2;
 	else
@@ -998,19 +1021,23 @@ u32 msm_vidc_calculate_enc_output_frame_size(struct msm_vidc_inst *inst)
 	if (vpu == VPU_VERSION_AR50) {
 		if (mbs_per_frame > NUM_MBS_720P)
 			frame_size = width * height;
+		else
+			frame_size =  frame_size << 1;
 	}
 
-	if ((inst->rc_type == RATE_CONTROL_OFF) ||
-		(inst->rc_type == V4L2_MPEG_VIDEO_BITRATE_MODE_CQ))
+	if (inst->rc_type == RATE_CONTROL_OFF)
 		frame_size = frame_size << 1;
 
 	if (inst->rc_type == RATE_CONTROL_LOSSLESS)
 		frame_size = (width * height * 9) >> 2;
 
 	/* multiply by 10/8 (1.25) to get size for 10 bit case */
-	if (f->fmt.pix_mp.pixelformat == V4L2_PIX_FMT_HEVC)
+	if (inst->core->platform_data->vpu_ver != VPU_VERSION_AR50_LITE &&
+		f->fmt.pix_mp.pixelformat == V4L2_PIX_FMT_HEVC) {
 		frame_size = frame_size + (frame_size >> 2);
+	}
 
+calc_done:
 	return ALIGN(frame_size, SZ_4K);
 }
 
@@ -1426,7 +1453,9 @@ static inline u32 calculate_enc_scratch_size(struct msm_vidc_inst *inst,
 		bitstream_size = aligned_width * aligned_height * 3;
 		bitbin_size = ALIGN(bitstream_size, VENUS_DMA_ALIGNMENT);
 	}
-	if (num_vpp_pipes > 2)
+	if (aligned_width * aligned_height >= 3840 * 2160)
+		size_singlePipe = bitbin_size / 4;
+	else if (num_vpp_pipes > 2)
 		size_singlePipe = bitbin_size / 2;
 	else
 		size_singlePipe = bitbin_size;
@@ -1804,8 +1833,8 @@ static inline u32 hfi_ubwc_uv_metadata_plane_bufheight(u32 height,
 		tile_height_pels), metadata_height_multi);
 }
 
-static inline u32 calculate_enc_scratch2_size(struct msm_vidc_inst *inst,
-	u32 width, u32 height, u32 num_ref, bool ten_bit)
+static inline u32 hfi_iris2_enc_dpb_buffer_size(u32 width, u32 height,
+	bool ten_bit)
 {
 	u32 aligned_width, aligned_height, chroma_height, ref_buf_height;
 	u32 luma_size, chroma_size;
@@ -1830,7 +1859,6 @@ static inline u32 calculate_enc_scratch2_size(struct msm_vidc_inst *inst,
 			metadata_stride, meta_buf_height);
 		size = (aligned_height + chroma_height) * aligned_width +
 			meta_size_y + meta_size_c;
-		size = (size * (num_ref+3)) + 4096;
 	} else {
 		ref_buf_height = (height + (HFI_VENUS_HEIGHT_ALIGNMENT - 1))
 			& (~(HFI_VENUS_HEIGHT_ALIGNMENT - 1));
@@ -1863,7 +1891,25 @@ static inline u32 calculate_enc_scratch2_size(struct msm_vidc_inst *inst,
 		meta_size_c = hfi_ubwc_metadata_plane_buffer_size(
 			metadata_stride, meta_buf_height);
 		size = ref_buf_size + meta_size_y + meta_size_c;
-		size = (size * (num_ref+3)) + 4096;
+	}
+	return size;
+}
+
+static inline u32 calculate_enc_scratch2_size(struct msm_vidc_inst *inst,
+	u32 width, u32 height, u32 num_ref, bool ten_bit, bool downscale,
+	u32 rotation_val, u32 flip)
+{
+	u32 size;
+
+	size = hfi_iris2_enc_dpb_buffer_size(width, height, ten_bit);
+	size = size * (num_ref + 1) + 4096;
+	if (downscale && (rotation_val || flip)) {
+	/* VPSS output is always 128 x 32 (8-bit) or 192 x 16 (10-bit) aligned */
+		if (rotation_val == 90 || rotation_val == 270)
+			size += hfi_iris2_enc_dpb_buffer_size(height, width, ten_bit);
+		else
+			size += hfi_iris2_enc_dpb_buffer_size(width, height, ten_bit);
+		size += 4096;
 	}
 	return size;
 }
@@ -1877,7 +1923,8 @@ static inline u32 calculate_h264d_persist1_size(void)
 {
 	u32 size = 0;
 
-	size = ALIGN((SIZE_SLIST_BUF_H264 * NUM_SLIST_BUF_H264),
+	size = ALIGN((SIZE_SLIST_BUF_H264 * NUM_SLIST_BUF_H264
+			+ NUM_HW_PIC_BUF * SIZE_SEI_USERDATA),
 			VENUS_DMA_ALIGNMENT);
 	return size;
 }
@@ -1887,7 +1934,8 @@ static inline u32 calculate_h265d_persist1_size(void)
 	u32 size = 0;
 
 	size = ALIGN((SIZE_SLIST_BUF_H265 * NUM_SLIST_BUF_H265 + H265_NUM_TILE
-			* sizeof(u32)), VENUS_DMA_ALIGNMENT);
+			* sizeof(u32) + NUM_HW_PIC_BUF * SIZE_SEI_USERDATA),
+			VENUS_DMA_ALIGNMENT);
 	return size;
 }
 

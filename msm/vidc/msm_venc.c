@@ -1199,26 +1199,6 @@ u32 v4l2_to_hfi_flip(struct msm_vidc_inst *inst)
 	return flip;
 }
 
-inline bool vidc_scalar_enabled(struct msm_vidc_inst *inst)
-{
-	struct v4l2_format *f;
-	u32 output_height, output_width, input_height, input_width;
-	bool scalar_enable = false;
-
-	f = &inst->fmts[OUTPUT_PORT].v4l2_fmt;
-	output_height = f->fmt.pix_mp.height;
-	output_width = f->fmt.pix_mp.width;
-	f = &inst->fmts[INPUT_PORT].v4l2_fmt;
-	input_height = f->fmt.pix_mp.height;
-	input_width = f->fmt.pix_mp.width;
-
-	if (output_height != input_height || output_width != input_width)
-		scalar_enable = true;
-
-	return scalar_enable;
-}
-
-
 static int msm_venc_set_csc(struct msm_vidc_inst *inst,
 					u32 color_primaries, u32 custom_matrix);
 
@@ -1637,7 +1617,7 @@ static int msm_venc_update_bitrate(struct msm_vidc_inst *inst)
 	u32 cabac_max_bitrate = 0;
 
 	if (!inst) {
-		d_vpr_e("%s: invalid params %pK\n", __func__);
+		d_vpr_e("%s: invalid params\n", __func__);
 		return -EINVAL;
 	}
 
@@ -1734,7 +1714,7 @@ int msm_venc_s_ctrl(struct msm_vidc_inst *inst, struct v4l2_ctrl *ctrl)
 		if (inst->state < MSM_VIDC_LOAD_RESOURCES)
 			msm_vidc_calculate_buffer_counts(inst);
 		if (inst->state == MSM_VIDC_START_DONE) {
-			rc = msm_venc_set_frame_rate(inst);
+			rc = msm_venc_set_frame_rate(inst, true);
 			if (rc)
 				s_vpr_e(sid, "%s: set frame rate failed\n",
 					__func__);
@@ -1994,17 +1974,17 @@ int msm_venc_s_ctrl(struct msm_vidc_inst *inst, struct v4l2_ctrl *ctrl)
 			}
 		} else if (inst->state == MSM_VIDC_START_DONE) {
 			if (!inst->external_blur) {
-				s_vpr_e(sid, "external blur not enabled");
+				s_vpr_e(sid, "%s: external blur not enabled", __func__);
 				break;
 			}
 			if (ctrl->val == MSM_VIDC_BLUR_EXTERNAL_DYNAMIC) {
 				s_vpr_h(sid,
-					"external blur setting already enabled\n",
+					"%s: external blur setting already enabled\n",
 					__func__);
 				break;
 			} else if (ctrl->val == MSM_VIDC_BLUR_INTERNAL) {
 				s_vpr_e(sid,
-					"cannot change to internal blur config dynamically\n",
+					"%s: cannot change to internal blur config dynamically\n",
 					__func__);
 				break;
 			} else {
@@ -2056,6 +2036,9 @@ int msm_venc_s_ctrl(struct msm_vidc_inst *inst, struct v4l2_ctrl *ctrl)
 	case V4L2_CID_MPEG_VIDC_VIDEO_FULL_RANGE:
 		inst->full_range = ctrl->val;
 		break;
+	case V4L2_CID_MPEG_VIDC_VENC_BITRATE_BOOST:
+		inst->boost_enabled = true;
+		break;
 	case V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE:
 		inst->entropy_mode = msm_comm_v4l2_to_hfi(
 			V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE,
@@ -2097,7 +2080,6 @@ int msm_venc_s_ctrl(struct msm_vidc_inst *inst, struct v4l2_ctrl *ctrl)
 	case V4L2_CID_MPEG_VIDEO_VBV_DELAY:
 	case V4L2_CID_MPEG_VIDEO_H264_CHROMA_QP_INDEX_OFFSET:
 	case V4L2_CID_MPEG_VIDC_VENC_BITRATE_SAVINGS:
-	case V4L2_CID_MPEG_VIDC_VENC_BITRATE_BOOST:
 	case V4L2_CID_MPEG_VIDC_VENC_QPRANGE_BOOST:
 	case V4L2_CID_MPEG_VIDC_SUPERFRAME:
 		s_vpr_h(sid, "Control set: ID : 0x%x Val : %d\n",
@@ -2162,7 +2144,7 @@ int msm_venc_set_frame_size(struct msm_vidc_inst *inst)
 	return rc;
 }
 
-int msm_venc_set_frame_rate(struct msm_vidc_inst *inst)
+int msm_venc_set_frame_rate(struct msm_vidc_inst *inst, bool external_requested)
 {
 	int rc = 0;
 	struct hfi_device *hdev;
@@ -2195,9 +2177,16 @@ int msm_venc_set_frame_rate(struct msm_vidc_inst *inst)
 
 	s_vpr_h(inst->sid, "%s: %#x\n", __func__, frame_rate.frame_rate);
 
-	rc = call_hfi_op(hdev, session_set_property,
-		inst->session, HFI_PROPERTY_CONFIG_FRAME_RATE,
+	if (external_requested) {
+		rc = call_hfi_op(hdev, session_set_property,
+			inst->session, HFI_PROPERTY_CONFIG_FRAME_RATE,
+			&frame_rate, sizeof(frame_rate));
+	} else {
+		s_vpr_l(inst->sid, "Auto frame rate set");
+		rc = call_hfi_op(hdev, session_set_property,
+		inst->session, HFI_PROPERTY_CONFIG_VENC_AUTO_FRAME_RATE,
 		&frame_rate, sizeof(frame_rate));
+	}
 	if (rc)
 		s_vpr_e(inst->sid, "%s: set property failed\n", __func__);
 
@@ -2269,7 +2258,7 @@ int msm_venc_store_timestamp(struct msm_vidc_inst *inst, u64 timestamp_us)
 			inst->clk_data.frame_rate = entry->framerate;
 		s_vpr_l(inst->sid, "%s: updated fps to %u\n",
 			__func__, (inst->clk_data.frame_rate >> 16));
-		msm_venc_set_frame_rate(inst);
+		msm_venc_set_frame_rate(inst, false);
 	}
 
 unlock:
@@ -3587,12 +3576,14 @@ int msm_venc_set_bitrate_boost_margin(struct msm_vidc_inst *inst, u32 enable)
 	struct v4l2_ctrl *ctrl = NULL;
 	struct hfi_bitrate_boost_margin boost_margin;
 	int minqp, maxqp;
+	uint32_t vpu;
 
 	if (!inst || !inst->core) {
 		d_vpr_e("%s: invalid params %pK\n", __func__, inst);
 		return -EINVAL;
 	}
 	hdev = inst->core->device;
+	vpu = inst->core->platform_data->vpu_ver;
 
 	if (!enable) {
 		boost_margin.margin = 0;
@@ -3601,11 +3592,20 @@ int msm_venc_set_bitrate_boost_margin(struct msm_vidc_inst *inst, u32 enable)
 
 	ctrl = get_ctrl(inst, V4L2_CID_MPEG_VIDC_VENC_BITRATE_BOOST);
 
-	/* Mapped value to 0, 25 or 50*/
+	/*
+	 * For certain SOC, default value should be 0 unless client enabled
+	 */
+	if (!inst->boost_enabled && vpu == VPU_VERSION_AR50_LITE) {
+		ctrl->val = 0;
+		update_ctrl(ctrl, 0, inst->sid);
+	}
+	/* Mapped value to 0, 15, 25 or 50*/
 	if (ctrl->val >= 50)
 		boost_margin.margin = 50;
-	else
+	else if (ctrl->val >= 25)
 		boost_margin.margin = (u32)(ctrl->val/25) * 25;
+	else
+		boost_margin.margin = (u32)(ctrl->val/15) * 15;
 
 setprop:
 	s_vpr_h(inst->sid, "%s: %d\n", __func__, boost_margin.margin);
@@ -3889,6 +3889,12 @@ int msm_venc_set_hp_max_layer(struct msm_vidc_inst *inst)
 		s_vpr_e(inst->sid, "%s: get hybrid hier-P decision failed\n",
 			__func__);
 		return rc;
+	}
+	if (!inst->hybrid_hp && max_layer->val > 4) {
+		update_ctrl(max_layer, 0, inst->sid);
+		s_vpr_h(inst->sid,
+			"%s: Hier-P requested beyond max capability\n", __func__);
+		return 0;
 	}
 
 	/*
@@ -4297,7 +4303,7 @@ int msm_venc_set_vui_timing_info(struct msm_vidc_inst *inst)
 	struct hfi_device *hdev;
 	struct v4l2_ctrl *ctrl;
 	struct hfi_vui_timing_info timing_info;
-	bool cfr;
+	bool cfr, native_recorder;
 	u32 codec;
 
 	if (!inst || !inst->core) {
@@ -4310,8 +4316,13 @@ int msm_venc_set_vui_timing_info(struct msm_vidc_inst *inst)
 	if (codec != V4L2_PIX_FMT_H264 && codec != V4L2_PIX_FMT_HEVC)
 		return 0;
 
+	native_recorder = false;
+	ctrl = get_ctrl(inst, V4L2_CID_MPEG_VIDC_VENC_NATIVE_RECORDER);
+	if (ctrl->val == V4L2_MPEG_MSM_VIDC_ENABLE)
+		native_recorder = true;
+
 	ctrl = get_ctrl(inst, V4L2_CID_MPEG_VIDC_VIDEO_VUI_TIMING_INFO);
-	if (ctrl->val == V4L2_MPEG_MSM_VIDC_DISABLE)
+	if (ctrl->val == V4L2_MPEG_MSM_VIDC_DISABLE && native_recorder == false)
 		return 0;
 
 	switch (inst->rc_type) {
@@ -4327,7 +4338,7 @@ int msm_venc_set_vui_timing_info(struct msm_vidc_inst *inst)
 
 	timing_info.enable = 1;
 	timing_info.fixed_frame_rate = cfr;
-	timing_info.time_scale = NSEC_PER_SEC;
+	timing_info.time_scale = (inst->clk_data.frame_rate >> 16) * USEC_PER_SEC;
 
 	s_vpr_h(inst->sid, "%s: %d %d\n", __func__, timing_info.enable,
 		timing_info.fixed_frame_rate);
@@ -4987,7 +4998,7 @@ int msm_venc_set_properties(struct msm_vidc_inst *inst)
 	rc = msm_venc_set_frame_size(inst);
 	if (rc)
 		goto exit;
-	rc = msm_venc_set_frame_rate(inst);
+	rc = msm_venc_set_frame_rate(inst, true);
 	if (rc)
 		goto exit;
 	rc = msm_venc_set_secure_mode(inst);

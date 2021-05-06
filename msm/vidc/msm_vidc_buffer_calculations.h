@@ -26,7 +26,8 @@ struct msm_vidc_enc_buff_size_calculators {
 		u32 width, u32 height, u32 num_ref, bool ten_bit,
 		u32 num_vpp_pipes);
 	u32 (*calculate_scratch2_size)(struct msm_vidc_inst *inst,
-		u32 width, u32 height, u32 num_ref, bool ten_bit);
+		u32 width, u32 height, u32 num_ref, bool ten_bit, bool downscale,
+		u32 rotation_val, u32 flip);
 	u32 (*calculate_persist_size)(void);
 };
 
@@ -36,7 +37,8 @@ int msm_vidc_calculate_output_buffer_count(struct msm_vidc_inst *inst);
 int msm_vidc_calculate_buffer_counts(struct msm_vidc_inst *inst);
 int msm_vidc_get_extra_buff_count(struct msm_vidc_inst *inst,
 	enum hal_buffer buffer_type);
-u32 msm_vidc_calculate_dec_input_frame_size(struct msm_vidc_inst *inst);
+u32 msm_vidc_calculate_dec_input_frame_size(struct msm_vidc_inst *inst,
+	u32 buffer_size_limit);
 u32 msm_vidc_calculate_dec_output_frame_size(struct msm_vidc_inst *inst);
 u32 msm_vidc_calculate_dec_output_extra_size(struct msm_vidc_inst *inst);
 u32 msm_vidc_calculate_enc_input_frame_size(struct msm_vidc_inst *inst);

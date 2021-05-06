@@ -33,13 +33,14 @@ struct msm_vidc_core_ops core_ops_ar50_lt = {
 	.decide_work_mode = msm_vidc_decide_work_mode_ar50_lt,
 	.decide_core_and_power_mode =
 		msm_vidc_decide_core_and_power_mode_ar50lt,
-	.calc_bw = NULL,
+	.calc_bw = calc_bw_ar50lt,
 };
 struct msm_vidc_core_ops core_ops_ar50 = {
 	.calc_freq = msm_vidc_calc_freq_ar50_lt,
 	.decide_work_route = NULL,
 	.decide_work_mode = msm_vidc_decide_work_mode_ar50_lt,
-	.decide_core_and_power_mode = NULL,
+	.decide_core_and_power_mode =
+		msm_vidc_decide_core_and_power_mode_ar50lt,
 	.calc_bw = NULL,
 };
 struct msm_vidc_core_ops core_ops_iris1 = {
@@ -481,6 +482,9 @@ int msm_comm_vote_bus(struct msm_vidc_inst *inst)
 		if (core->resources.sys_cache_res_set)
 			vote_data->use_sys_cache = true;
 
+		vote_data->num_vpp_pipes =
+			inst->core->platform_data->num_vpp_pipes;
+
 		call_core_op(core, calc_bw, vote_data);
 	}
 
@@ -789,6 +793,7 @@ static unsigned long msm_vidc_calc_freq_iris2(struct msm_vidc_inst *inst,
 	u32 operating_rate, vsp_factor_num = 1, vsp_factor_den = 1;
 	u32 base_cycles = 0;
 	u32 codec = 0;
+	u64 bitrate = 0;
 
 	core = inst->core;
 	dcvs = &inst->clk_data;
@@ -835,6 +840,13 @@ static unsigned long msm_vidc_calc_freq_iris2(struct msm_vidc_inst *inst,
 		if (fps == 480)
 			vpp_cycles += div_u64(vpp_cycles * 2, 100);
 
+		/*
+		 * Add 5 percent extra for 720p@960fps use case
+		 * to bump it to next level (366MHz).
+		 */
+		if (fps == 960)
+			vpp_cycles += div_u64(vpp_cycles * 5, 100);
+
 		/* VSP */
 		/* bitrate is based on fps, scale it using operating rate */
 		operating_rate = inst->clk_data.operating_rate >> 16;
@@ -855,9 +867,9 @@ static unsigned long msm_vidc_calc_freq_iris2(struct msm_vidc_inst *inst,
 		} else {
 			base_cycles = 0;
 			vsp_cycles = div_u64(vsp_cycles, 2);
-			/* VSP FW Overhead 1.05 */
-			vsp_cycles = div_u64(vsp_cycles * 21, 20);
 		}
+		/* VSP FW Overhead 1.05 */
+		vsp_cycles = div_u64(vsp_cycles * 21, 20);
 
 		if (inst->clk_data.work_mode == HFI_WORKMODE_1)
 			vsp_cycles = vsp_cycles * 3;
@@ -878,7 +890,8 @@ static unsigned long msm_vidc_calc_freq_iris2(struct msm_vidc_inst *inst,
 		codec = get_v4l2_codec(inst);
 		base_cycles = inst->has_bframe ?
 				80 : inst->clk_data.entry->vsp_cycles;
-		vsp_cycles = fps * filled_len * 8;
+		bitrate = fps * filled_len * 8;
+		vsp_cycles = bitrate;
 
 		if (codec == V4L2_PIX_FMT_VP9) {
 			vsp_cycles = div_u64(vsp_cycles * 170, 100);
@@ -887,15 +900,20 @@ static unsigned long msm_vidc_calc_freq_iris2(struct msm_vidc_inst *inst,
 		} else {
 			base_cycles = 0;
 			vsp_cycles = div_u64(vsp_cycles, 2);
-			/* VSP FW Overhead 1.05 */
-			vsp_cycles = div_u64(vsp_cycles * 21, 20);
 		}
+		/* VSP FW Overhead 1.05 */
+		vsp_cycles = div_u64(vsp_cycles * 21, 20);
 
 		if (inst->clk_data.work_mode == HFI_WORKMODE_1)
 			vsp_cycles = vsp_cycles * 3;
 
 		vsp_cycles += mbs_per_second * base_cycles;
 
+		if (codec == V4L2_PIX_FMT_VP9 &&
+		    inst->clk_data.work_mode == HFI_WORKMODE_2 &&
+		    inst->clk_data.work_route == 4 &&
+			bitrate > 90000000)
+			vsp_cycles = msm_vidc_max_freq(inst->core, inst->sid);
 	} else {
 		s_vpr_e(inst->sid, "%s: Unknown session type\n", __func__);
 		return msm_vidc_max_freq(inst->core, inst->sid);
@@ -1701,7 +1719,7 @@ static inline int msm_vidc_power_save_mode_enable(struct msm_vidc_inst *inst,
 			sizeof(hfi_perf_mode));
 	if (rc) {
 		s_vpr_e(inst->sid, "%s: Failed to set power save mode\n",
-			__func__, inst);
+			__func__);
 		return rc;
 	}
 	inst->flags = enable ?
@@ -1864,7 +1882,10 @@ int msm_vidc_decide_core_and_power_mode_iris2(struct msm_vidc_inst *inst)
 	max_hq_mbpf = inst->core->resources.max_hq_mbs_per_frame;
 	max_hq_mbps = inst->core->resources.max_hq_mbs_per_sec;
 
-	if (mbpf <= max_hq_mbpf && mbps <= max_hq_mbps)
+	/* Power saving always disabled for CQ and LOSSLESS RC modes. */
+	if (inst->rc_type == V4L2_MPEG_VIDEO_BITRATE_MODE_CQ ||
+		inst->rc_type == RATE_CONTROL_LOSSLESS ||
+		(mbpf <= max_hq_mbpf && mbps <= max_hq_mbps))
 		enable = false;
 
 	rc = msm_vidc_power_save_mode_enable(inst, enable);

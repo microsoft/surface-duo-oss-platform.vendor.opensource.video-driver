@@ -157,8 +157,10 @@ static struct msm_vidc_codec default_codecs[] = {
 
 static struct msm_vidc_codec_capability bengal_capabilities_v0[] = {
 	/* {cap_type, domains, codecs, min, max, step_size, default_value} */
-	{CAP_FRAME_WIDTH, DOMAINS_ALL, CODECS_ALL, 128, 1920, 1, 1920},
-	{CAP_FRAME_HEIGHT, DOMAINS_ALL, CODECS_ALL, 128, 1920, 1, 1080},
+	{CAP_FRAME_WIDTH, DEC, CODECS_ALL, 128, 1920, 1, 1920},
+	{CAP_FRAME_HEIGHT, DEC, CODECS_ALL, 128, 1920, 1, 1080},
+	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 128, 1920, 2, 1920},
+	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 1920, 2, 1080},
 	/*  ((1920 * 1088) / 256) */
 	{CAP_MBS_PER_FRAME, DOMAINS_ALL, CODECS_ALL, 64, 8160, 1, 8160},
 	/* 1080@30 decode + 1080@30 encode */
@@ -181,17 +183,19 @@ static struct msm_vidc_codec_capability bengal_capabilities_v0[] = {
 	{CAP_MAX_VIDEOCORES, DOMAINS_ALL, CODECS_ALL, 0, 1, 1, 1},
 
 	/* Secure usecase specific */
-	{CAP_SECURE_FRAME_WIDTH, DOMAINS_ALL, CODECS_ALL, 128, 1920, 1, 1920},
-	{CAP_SECURE_FRAME_HEIGHT, DOMAINS_ALL, CODECS_ALL, 128, 1920, 1, 1080},
+	{CAP_SECURE_FRAME_WIDTH, DEC, CODECS_ALL, 128, 1920, 1, 1920},
+	{CAP_SECURE_FRAME_HEIGHT, DEC, CODECS_ALL, 128, 1920, 1, 1080},
+	{CAP_SECURE_FRAME_WIDTH, ENC, CODECS_ALL, 128, 1920, 2, 1920},
+	{CAP_SECURE_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 1920, 2, 1080},
 	/* (1920 * 1088) / 256 */
 	{CAP_SECURE_MBS_PER_FRAME, DOMAINS_ALL, CODECS_ALL, 64, 8160, 1, 8160},
 	{CAP_SECURE_BITRATE, DOMAINS_ALL, CODECS_ALL, 1, 35000000, 1, 20000000},
 
 	/* Image specific */
-	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 8192, 1, 8192},
-	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 8192, 1, 8192},
+	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 8192, 2, 8192},
+	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 8192, 2, 8192},
 
 	/* Level for AVC and HEVC encoder specific.
 	 * Default for levels is UNKNOWN value. But if we use unknown
@@ -217,8 +221,10 @@ static struct msm_vidc_codec_capability bengal_capabilities_v0[] = {
 
 static struct msm_vidc_codec_capability bengal_capabilities_v1[] = {
 	/* {cap_type, domains, codecs, min, max, step_size, default_value} */
-	{CAP_FRAME_WIDTH, DOMAINS_ALL, CODECS_ALL, 128, 1920, 1, 1920},
-	{CAP_FRAME_HEIGHT, DOMAINS_ALL, CODECS_ALL, 128, 1920, 1, 1080},
+        {CAP_FRAME_WIDTH, DEC, CODECS_ALL, 128, 1920, 1, 1920},
+        {CAP_FRAME_HEIGHT, DEC, CODECS_ALL, 128, 1920, 1, 1080},
+        {CAP_FRAME_WIDTH, ENC, CODECS_ALL, 128, 1920, 2, 1920},
+        {CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 1920, 2, 1080},
 	/*  ((1920 * 1088) / 256) */
 	{CAP_MBS_PER_FRAME, DOMAINS_ALL, CODECS_ALL, 64, 8160, 1, 8160},
 	/* 1920*1088 @30fps */
@@ -241,17 +247,19 @@ static struct msm_vidc_codec_capability bengal_capabilities_v1[] = {
 	{CAP_MAX_VIDEOCORES, DOMAINS_ALL, CODECS_ALL, 0, 1, 1, 1},
 
 	/* Secure usecase specific */
-	{CAP_SECURE_FRAME_WIDTH, DOMAINS_ALL, CODECS_ALL, 128, 1920, 1, 1920},
-	{CAP_SECURE_FRAME_HEIGHT, DOMAINS_ALL, CODECS_ALL, 128, 1920, 1, 1080},
+        {CAP_SECURE_FRAME_WIDTH, DEC, CODECS_ALL, 128, 1920, 1, 1920},
+        {CAP_SECURE_FRAME_HEIGHT, DEC, CODECS_ALL, 128, 1920, 1, 1080},
+        {CAP_SECURE_FRAME_WIDTH, ENC, CODECS_ALL, 128, 1920, 2, 1920},
+        {CAP_SECURE_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 1920, 2, 1080},
 	/* (1920 * 1088) / 256 */
 	{CAP_SECURE_MBS_PER_FRAME, DOMAINS_ALL, CODECS_ALL, 64, 8160, 1, 8160},
 	{CAP_SECURE_BITRATE, DOMAINS_ALL, CODECS_ALL, 1, 35000000, 1, 20000000},
 
 	/* Image specific */
-	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 8192, 1, 8192},
-	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 8192, 1, 8192},
+	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 8192, 2, 8192},
+	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 8192, 2, 8192},
 
 	/* Level for AVC and HEVC encoder specific.
 	 * Default for levels is UNKNOWN value. But if we use unknown
@@ -279,8 +287,8 @@ static struct msm_vidc_codec_capability holi_capabilities[] = {
 	/* {cap_type, domains, codecs, min, max, step_size, default_value} */
 	{CAP_FRAME_WIDTH, DEC, CODECS_ALL, 96, 1920, 1, 1920},
 	{CAP_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 1920, 1, 1080},
-	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 128, 1920, 1, 1920},
-	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 1920, 1, 1080},
+	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 128, 1920, 2, 1920},
+	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 1920, 2, 1080},
 	/*  ((1920 * 1088) / 256) */
 	{CAP_MBS_PER_FRAME, DEC, CODECS_ALL, 36, 8160, 1, 8160},
 	{CAP_MBS_PER_FRAME, ENC, CODECS_ALL, 64, 8160, 1, 8160},
@@ -307,20 +315,20 @@ static struct msm_vidc_codec_capability holi_capabilities[] = {
 	/* Secure usecase specific */
 	{CAP_SECURE_FRAME_WIDTH, DEC, CODECS_ALL, 96, 1920, 1, 1920},
 	{CAP_SECURE_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 1920, 1, 1080},
-	{CAP_SECURE_FRAME_WIDTH, ENC, CODECS_ALL, 128, 1920, 1, 1920},
-	{CAP_SECURE_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 1920, 1, 1080},
+	{CAP_SECURE_FRAME_WIDTH, ENC, CODECS_ALL, 128, 1920, 2, 1920},
+	{CAP_SECURE_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 1920, 2, 1080},
 	/* (1920 * 1088) / 256 */
 	{CAP_SECURE_MBS_PER_FRAME, DOMAINS_ALL, CODECS_ALL, 64, 8160, 1, 8160},
 	{CAP_SECURE_BITRATE, DOMAINS_ALL, CODECS_ALL, 1, 35000000, 1, 20000000},
 
 	/* All intra encoding usecase specific */
-	{CAP_ALLINTRA_MAX_FPS, ENC, H264|HEVC, 1, 30, 1, 30},
+	{CAP_ALLINTRA_MAX_FPS, ENC, H264|HEVC, 1, 60, 1, 30},
 
 	/* Image specific */
-	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 8192, 1, 8192},
-	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 8192, 1, 8192},
+	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 8192, 2, 8192},
+	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 8192, 2, 8192},
 
 	/* Level for AVC and HEVC encoder specific.
 	 * Default for levels is UNKNOWN value. But if we use unknown
@@ -348,8 +356,8 @@ static struct msm_vidc_codec_capability lahaina_capabilities[] = {
 	/* {cap_type, domains, codecs, min, max, step_size, default_value,} */
 	{CAP_FRAME_WIDTH, DEC, CODECS_ALL, 96, 8192, 1, 1920},
 	{CAP_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 8192, 1, 1080},
-	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 128, 8192, 1, 1920},
-	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 8192, 1, 1080},
+	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 128, 8192, 2, 1920},
+	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 8192, 2, 1080},
 	/* (8192 * 4320) / 256 */
 	{CAP_MBS_PER_FRAME, DEC, CODECS_ALL, 36, 138240, 1, 138240},
 	{CAP_MBS_PER_FRAME, ENC, CODECS_ALL, 64, 138240, 1, 138240},
@@ -404,8 +412,8 @@ static struct msm_vidc_codec_capability lahaina_capabilities[] = {
 	/* Secure usecase specific */
 	{CAP_SECURE_FRAME_WIDTH, DEC, CODECS_ALL, 96, 4096, 1, 1920},
 	{CAP_SECURE_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 4096, 1, 1080},
-	{CAP_SECURE_FRAME_WIDTH, ENC, CODECS_ALL, 128, 4096, 1, 1920},
-	{CAP_SECURE_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 4096, 1, 1080},
+	{CAP_SECURE_FRAME_WIDTH, ENC, CODECS_ALL, 128, 4096, 2, 1920},
+	{CAP_SECURE_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 4096, 2, 1080},
 	/* (4096 * 2304) / 256 */
 	{CAP_SECURE_MBS_PER_FRAME, DEC, CODECS_ALL, 36, 36864, 1, 36864},
 	{CAP_SECURE_MBS_PER_FRAME, ENC, CODECS_ALL, 64, 36864, 1, 36864},
@@ -417,8 +425,8 @@ static struct msm_vidc_codec_capability lahaina_capabilities[] = {
 	{CAP_BATCH_MAX_FPS, DEC, CODECS_ALL, 1, 120, 1, 120},
 
 	/* Lossless encoding usecase specific */
-	{CAP_LOSSLESS_FRAME_WIDTH, ENC, H264|HEVC, 128, 4096, 1, 1920},
-	{CAP_LOSSLESS_FRAME_HEIGHT, ENC, H264|HEVC, 128, 4096, 1, 1080},
+	{CAP_LOSSLESS_FRAME_WIDTH, ENC, H264|HEVC, 128, 4096, 2, 1920},
+	{CAP_LOSSLESS_FRAME_HEIGHT, ENC, H264|HEVC, 128, 4096, 2, 1080},
 	/* (4096 * 2304) / 256 */
 	{CAP_LOSSLESS_MBS_PER_FRAME, ENC, H264|HEVC, 64, 36864, 1, 36864},
 
@@ -426,10 +434,10 @@ static struct msm_vidc_codec_capability lahaina_capabilities[] = {
 	{CAP_ALLINTRA_MAX_FPS, ENC, H264|HEVC, 1, 240, 1, 30},
 
 	/* Image specific */
-	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 16384, 1, 16384},
-	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 16384, 1, 16384},
+	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 16384, 2, 16384},
+	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 16384, 2, 16384},
 
 	/*
 	 * Level for AVC and HEVC encoder specific.
@@ -458,11 +466,12 @@ static struct msm_vidc_codec_capability shima_capabilities_v0[] = {
 	/* {cap_type, domains, codecs, min, max, step_size, default_value,} */
 	{CAP_FRAME_WIDTH, DEC, CODECS_ALL, 96, 8192, 1, 1920},
 	{CAP_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 8192, 1, 1080},
-	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 128, 8192, 1, 1920},
-	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 8192, 1, 1080},
+	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 128, 4096, 2, 1920},
+	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 4096, 2, 1080},
 	/* (8192 * 4320) / 256 */
 	{CAP_MBS_PER_FRAME, DEC, CODECS_ALL, 36, 138240, 1, 138240},
-	{CAP_MBS_PER_FRAME, ENC, CODECS_ALL, 64, 138240, 1, 138240},
+	/* (4096 * 2176) / 256 */
+	{CAP_MBS_PER_FRAME, ENC, CODECS_ALL, 64, 34816, 1, 138240},
 	{CAP_FRAMERATE, DOMAINS_ALL, CODECS_ALL, 1, 480, 1, 30},
 
 	/* Encode spec - 4K@60 */
@@ -516,8 +525,8 @@ static struct msm_vidc_codec_capability shima_capabilities_v0[] = {
 	/* Secure usecase specific */
 	{CAP_SECURE_FRAME_WIDTH, DEC, CODECS_ALL, 96, 4096, 1, 1920},
 	{CAP_SECURE_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 4096, 1, 1080},
-	{CAP_SECURE_FRAME_WIDTH, ENC, CODECS_ALL, 128, 4096, 1, 1920},
-	{CAP_SECURE_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 4096, 1, 1080},
+	{CAP_SECURE_FRAME_WIDTH, ENC, CODECS_ALL, 128, 4096, 2, 1920},
+	{CAP_SECURE_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 4096, 2, 1080},
 	/* (3840 * 2176) / 256 */
 	{CAP_SECURE_MBS_PER_FRAME, DEC, CODECS_ALL, 36, 34816, 1, 8160},
 	{CAP_SECURE_MBS_PER_FRAME, ENC, CODECS_ALL, 64, 34816, 1, 8160},
@@ -529,8 +538,8 @@ static struct msm_vidc_codec_capability shima_capabilities_v0[] = {
 	{CAP_BATCH_MAX_FPS, DEC, CODECS_ALL, 1, 60, 1, 60},
 
 	/* Lossless encoding usecase specific */
-	{CAP_LOSSLESS_FRAME_WIDTH, ENC, H264|HEVC, 128, 4096, 1, 1920},
-	{CAP_LOSSLESS_FRAME_HEIGHT, ENC, H264|HEVC, 128, 4096, 1, 1080},
+	{CAP_LOSSLESS_FRAME_WIDTH, ENC, H264|HEVC, 128, 4096, 2, 1920},
+	{CAP_LOSSLESS_FRAME_HEIGHT, ENC, H264|HEVC, 128, 4096, 2, 1080},
 	/* (4096 * 2176) / 256 */
 	{CAP_LOSSLESS_MBS_PER_FRAME, ENC, H264|HEVC, 64, 34816, 1, 8160},
 
@@ -538,10 +547,10 @@ static struct msm_vidc_codec_capability shima_capabilities_v0[] = {
 	{CAP_ALLINTRA_MAX_FPS, ENC, H264|HEVC, 1, 120, 1, 30},
 
 	/* Image specific */
-	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 16384, 1, 16384},
-	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 16384, 1, 16384},
+	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 16384, 2, 16384},
+	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 16384, 2, 16384},
 
 	/*
 	 * Level for AVC and HEVC encoder specific.
@@ -551,18 +560,18 @@ static struct msm_vidc_codec_capability shima_capabilities_v0[] = {
 	 * to set higher level than supported.
 	 */
 	{CAP_H264_LEVEL, ENC, H264, V4L2_MPEG_VIDEO_H264_LEVEL_1_0,
-	                            V4L2_MPEG_VIDEO_H264_LEVEL_5_1, 1,
+	                            V4L2_MPEG_VIDEO_H264_LEVEL_5_2, 1,
 	                            V4L2_MPEG_VIDEO_H264_LEVEL_4_0},
 	{CAP_HEVC_LEVEL, ENC, HEVC, V4L2_MPEG_VIDEO_HEVC_LEVEL_1,
-	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_5, 1,
+	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1, 1,
 	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_4},
 
 	/* Level for AVC and HEVC decoder specific */
 	{CAP_H264_LEVEL, DEC, H264, V4L2_MPEG_VIDEO_H264_LEVEL_1_0,
-	                            V4L2_MPEG_VIDEO_H264_LEVEL_5_2, 1,
+	                            V4L2_MPEG_VIDEO_H264_LEVEL_6_0, 1,
 	                            V4L2_MPEG_VIDEO_H264_LEVEL_4_0},
 	{CAP_HEVC_LEVEL, DEC, HEVC, V4L2_MPEG_VIDEO_HEVC_LEVEL_1,
-	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1, 1,
+	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_6, 1,
 	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_4},
 };
 
@@ -570,8 +579,8 @@ static struct msm_vidc_codec_capability shima_capabilities_v1[] = {
 	/* {cap_type, domains, codecs, min, max, step_size, default_value,} */
 	{CAP_FRAME_WIDTH, DEC, CODECS_ALL, 96, 4096, 1, 1920},
 	{CAP_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 4096, 1, 1080},
-	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 128, 4096, 1, 1920},
-	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 4096, 1, 1080},
+	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 128, 4096, 2, 1920},
+	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 4096, 2, 1080},
 	/*  ((4096 * 2176) / 256) */
 	{CAP_MBS_PER_FRAME, DEC, CODECS_ALL, 36, 34816, 1, 8160},
 	{CAP_MBS_PER_FRAME, ENC, CODECS_ALL, 64, 34816, 1, 8160},
@@ -623,8 +632,8 @@ static struct msm_vidc_codec_capability shima_capabilities_v1[] = {
 	/* Secure usecase specific */
 	{CAP_SECURE_FRAME_WIDTH, DEC, CODECS_ALL, 96, 4096, 1, 1920},
 	{CAP_SECURE_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 4096, 1, 1080},
-	{CAP_SECURE_FRAME_WIDTH, DOMAINS_ALL, CODECS_ALL, 128, 4096, 1, 1920},
-	{CAP_SECURE_FRAME_HEIGHT, DOMAINS_ALL, CODECS_ALL, 128, 4096, 1, 1080},
+	{CAP_SECURE_FRAME_WIDTH, ENC, CODECS_ALL, 128, 4096, 2, 1920},
+	{CAP_SECURE_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 4096, 2, 1080},
 	/* (4096 * 2176) / 256 */
 	{CAP_SECURE_MBS_PER_FRAME, DEC, CODECS_ALL, 36, 34816, 1, 8160},
 	{CAP_SECURE_MBS_PER_FRAME, ENC, CODECS_ALL, 64, 34816, 1, 8160},
@@ -636,8 +645,8 @@ static struct msm_vidc_codec_capability shima_capabilities_v1[] = {
 	{CAP_BATCH_MAX_FPS, DEC, CODECS_ALL, 1, 30, 1, 30},
 
 	/* Lossless encoding usecase specific */
-	{CAP_LOSSLESS_FRAME_WIDTH, ENC, H264|HEVC, 128, 3840, 1, 1920},
-	{CAP_LOSSLESS_FRAME_HEIGHT, ENC, H264|HEVC, 128, 3840, 1, 1080},
+	{CAP_LOSSLESS_FRAME_WIDTH, ENC, H264|HEVC, 128, 3840, 2, 1920},
+	{CAP_LOSSLESS_FRAME_HEIGHT, ENC, H264|HEVC, 128, 3840, 2, 1080},
 	/* (3840 * 2176) / 256 */
 	{CAP_LOSSLESS_MBS_PER_FRAME, ENC, H264|HEVC, 64, 32640, 1, 8160},
 
@@ -645,10 +654,10 @@ static struct msm_vidc_codec_capability shima_capabilities_v1[] = {
 	{CAP_ALLINTRA_MAX_FPS, ENC, H264|HEVC, 1, 120, 1, 30},
 
 	/* Image specific */
-	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 16384, 1, 16384},
-	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 16384, 1, 16384},
+	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 16384, 2, 16384},
+	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 16384, 2, 16384},
 
 	/*
 	 * Level for AVC and HEVC encoder specific.
@@ -658,18 +667,18 @@ static struct msm_vidc_codec_capability shima_capabilities_v1[] = {
 	 * to set higher level than supported.
 	 */
 	{CAP_H264_LEVEL, ENC, H264, V4L2_MPEG_VIDEO_H264_LEVEL_1_0,
-	                            V4L2_MPEG_VIDEO_H264_LEVEL_5_1, 1,
+	                            V4L2_MPEG_VIDEO_H264_LEVEL_5_2, 1,
 	                            V4L2_MPEG_VIDEO_H264_LEVEL_4_0},
 	{CAP_HEVC_LEVEL, ENC, HEVC, V4L2_MPEG_VIDEO_HEVC_LEVEL_1,
-	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_5, 1,
+	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1, 1,
 	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_4},
 
 	/* Level for AVC and HEVC decoder specific */
 	{CAP_H264_LEVEL, DEC, H264, V4L2_MPEG_VIDEO_H264_LEVEL_1_0,
-	                            V4L2_MPEG_VIDEO_H264_LEVEL_5_1, 1,
+	                            V4L2_MPEG_VIDEO_H264_LEVEL_5_2, 1,
 	                            V4L2_MPEG_VIDEO_H264_LEVEL_4_0},
 	{CAP_HEVC_LEVEL, DEC, HEVC, V4L2_MPEG_VIDEO_HEVC_LEVEL_1,
-	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_5, 1,
+	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1, 1,
 	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_4},
 };
 
@@ -677,8 +686,8 @@ static struct msm_vidc_codec_capability shima_capabilities_v2[] = {
 	/* {cap_type, domains, codecs, min, max, step_size, default_value,} */
 	{CAP_FRAME_WIDTH, DEC, CODECS_ALL, 96, 4096, 1, 1920},
 	{CAP_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 4096, 1, 1080},
-	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 128, 4096, 1, 1920},
-	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 4096, 1, 1080},
+	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 128, 4096, 2, 1920},
+	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 4096, 2, 1080},
 	/* (4096 * 2176) / 256 */
 	{CAP_MBS_PER_FRAME, DEC, CODECS_ALL, 36, 34816, 1, 8160},
 	{CAP_MBS_PER_FRAME, ENC, CODECS_ALL, 64, 34816, 1, 8160},
@@ -729,8 +738,8 @@ static struct msm_vidc_codec_capability shima_capabilities_v2[] = {
 	/* Secure usecase specific */
 	{CAP_SECURE_FRAME_WIDTH, DEC, CODECS_ALL, 96, 4096, 1, 1920},
 	{CAP_SECURE_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 4096, 1, 1080},
-	{CAP_SECURE_FRAME_WIDTH, ENC, CODECS_ALL, 128, 4096, 1, 1920},
-	{CAP_SECURE_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 4096, 1, 1080},
+	{CAP_SECURE_FRAME_WIDTH, ENC, CODECS_ALL, 128, 4096, 2, 1920},
+	{CAP_SECURE_FRAME_HEIGHT, ENC, CODECS_ALL, 128, 4096, 2, 1080},
 	/* (4096 * 2176) / 256 */
 	{CAP_SECURE_MBS_PER_FRAME, DEC, CODECS_ALL, 36, 34816, 1, 8160},
 	{CAP_SECURE_MBS_PER_FRAME, ENC, CODECS_ALL, 64, 34816, 1, 8160},
@@ -742,8 +751,8 @@ static struct msm_vidc_codec_capability shima_capabilities_v2[] = {
 	{CAP_BATCH_MAX_FPS, DEC, CODECS_ALL, 1, 30, 1, 30},
 
 	/* Lossless encoding usecase specific */
-	{CAP_LOSSLESS_FRAME_WIDTH, ENC, H264|HEVC, 128, 4096, 1, 1920},
-	{CAP_LOSSLESS_FRAME_HEIGHT, ENC, H264|HEVC, 128, 4096, 1, 1080},
+	{CAP_LOSSLESS_FRAME_WIDTH, ENC, H264|HEVC, 128, 4096, 2, 1920},
+	{CAP_LOSSLESS_FRAME_HEIGHT, ENC, H264|HEVC, 128, 4096, 2, 1080},
 	/* (4096 * 2176) / 256 */
 	{CAP_LOSSLESS_MBS_PER_FRAME, ENC, H264|HEVC, 64, 34816, 1, 8160},
 
@@ -751,10 +760,10 @@ static struct msm_vidc_codec_capability shima_capabilities_v2[] = {
 	{CAP_ALLINTRA_MAX_FPS, ENC, H264|HEVC, 1, 120, 1, 30},
 
 	/* Image specific */
-	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 16384, 1, 16384},
-	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 16384, 1, 16384},
+	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 16384, 2, 16384},
+	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 16384, 2, 16384},
 
 	/*
 	 * Level for AVC and HEVC encoder specific.
@@ -764,18 +773,18 @@ static struct msm_vidc_codec_capability shima_capabilities_v2[] = {
 	 * to set higher level than supported.
 	 */
 	{CAP_H264_LEVEL, ENC, H264, V4L2_MPEG_VIDEO_H264_LEVEL_1_0,
-	                            V4L2_MPEG_VIDEO_H264_LEVEL_5_0, 1,
+	                            V4L2_MPEG_VIDEO_H264_LEVEL_5_1, 1,
 	                            V4L2_MPEG_VIDEO_H264_LEVEL_4_0},
 	{CAP_HEVC_LEVEL, ENC, HEVC, V4L2_MPEG_VIDEO_HEVC_LEVEL_1,
-	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1, 1,
+	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_5, 1,
 	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_4},
 
 	/* Level for AVC and HEVC decoder specific */
 	{CAP_H264_LEVEL, DEC, H264, V4L2_MPEG_VIDEO_H264_LEVEL_1_0,
-	                            V4L2_MPEG_VIDEO_H264_LEVEL_5_0, 1,
+	                            V4L2_MPEG_VIDEO_H264_LEVEL_5_1, 1,
 	                            V4L2_MPEG_VIDEO_H264_LEVEL_4_0},
 	{CAP_HEVC_LEVEL, DEC, HEVC, V4L2_MPEG_VIDEO_HEVC_LEVEL_1,
-	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1, 1,
+	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_5, 1,
 	                            V4L2_MPEG_VIDEO_HEVC_LEVEL_4},
 };
 
@@ -783,8 +792,8 @@ static struct msm_vidc_codec_capability sm8150_capabilities[] = {
 	/* {cap_type, domains, codecs, min, max, step_size, default_value} */
 	{CAP_FRAME_WIDTH, DEC, CODECS_ALL, 96, 8192, 1, 1920},
 	{CAP_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 4320, 1, 1080},
-	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 96, 4096, 1, 1920},
-	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 96, 2304, 1, 1080},
+	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 96, 4096, 2, 1920},
+	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 96, 2304, 2, 1080},
 	/*  ((8196 * 4320) / 256) */
 	{CAP_MBS_PER_FRAME, DEC, CODECS_ALL, 36, 138240, 1, 138240},
 	/*  ((4096 * 2304) / 256) */
@@ -840,8 +849,10 @@ static struct msm_vidc_codec_capability sm8150_capabilities[] = {
 	{CAP_BITRATE, DEC, MPEG2, 1, 40000000, 1, 20000000},
 
 	/* Secure usecase specific */
-	{CAP_SECURE_FRAME_WIDTH, DOMAINS_ALL, CODECS_ALL, 96, 4096, 1, 1920},
-	{CAP_SECURE_FRAME_HEIGHT, DOMAINS_ALL, CODECS_ALL, 96, 2304, 1, 1080},
+	{CAP_SECURE_FRAME_WIDTH, DEC, CODECS_ALL, 96, 4096, 1, 1920},
+	{CAP_SECURE_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 2304, 1, 1080},
+	{CAP_SECURE_FRAME_WIDTH, ENC, CODECS_ALL, 96, 4096, 2, 1920},
+	{CAP_SECURE_FRAME_HEIGHT, ENC, CODECS_ALL, 96, 2304, 2, 1080},
 	/* (4096 * 2304) / 256 */
 	{CAP_SECURE_MBS_PER_FRAME, DOMAINS_ALL, CODECS_ALL, 36, 36864, 1, 36864},
 	{CAP_SECURE_BITRATE, DOMAINS_ALL, CODECS_ALL, 1, 40000000, 1, 20000000},
@@ -855,10 +866,10 @@ static struct msm_vidc_codec_capability sm8150_capabilities[] = {
 	{CAP_ALLINTRA_MAX_FPS, ENC, H264|HEVC, 1, 240, 1, 30},
 
 	/* Image specific */
-	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 8192, 1, 8192},
-	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 8192, 1, 8192},
+	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 8192, 2, 8192},
+	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 8192, 2, 8192},
 
 	/* Level for AVC and HEVC encoder specific.
 	   Default for levels is UNKNOWN value. But if we use unknown
@@ -885,8 +896,8 @@ static struct msm_vidc_codec_capability sm6150_capabilities[] = {
 	/* {cap_type, domains, codecs, min, max, step_size, default_value} */
 	{CAP_FRAME_WIDTH, DEC, CODECS_ALL, 96, 4096, 1, 1920},
 	{CAP_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 2176, 1, 1080},
-	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 96, 4096, 1, 1920},
-	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 96, 2160, 1, 1080},
+	{CAP_FRAME_WIDTH, ENC, CODECS_ALL, 96, 4096, 2, 1920},
+	{CAP_FRAME_HEIGHT, ENC, CODECS_ALL, 96, 2160, 2, 1080},
 	/*  ((4096 * 2176) / 256) */
 	{CAP_MBS_PER_FRAME, DEC, CODECS_ALL, 36, 34816, 1, 8160},
 	{CAP_MBS_PER_FRAME, ENC, CODECS_ALL, 36, 34816, 1, 8160},
@@ -940,8 +951,10 @@ static struct msm_vidc_codec_capability sm6150_capabilities[] = {
 	{CAP_BITRATE, DEC, MPEG2, 1, 40000000, 1, 20000000},
 
 	/* Secure usecase specific */
-	{CAP_SECURE_FRAME_WIDTH, DOMAINS_ALL, CODECS_ALL, 96, 3840, 1, 1920},
-	{CAP_SECURE_FRAME_HEIGHT, DOMAINS_ALL, CODECS_ALL, 96, 2160, 1, 1080},
+	{CAP_SECURE_FRAME_WIDTH, DEC, CODECS_ALL, 96, 3840, 1, 1920},
+	{CAP_SECURE_FRAME_HEIGHT, DEC, CODECS_ALL, 96, 2160, 1, 1080},
+	{CAP_SECURE_FRAME_WIDTH, ENC, CODECS_ALL, 96, 3840, 2, 1920},
+	{CAP_SECURE_FRAME_HEIGHT, ENC, CODECS_ALL, 96, 2160, 2, 1080},
         /* (3840 * 2176) / 256 */
 	{CAP_SECURE_MBS_PER_FRAME, DOMAINS_ALL, CODECS_ALL, 36, 32640, 1, 8160},
 	{CAP_SECURE_BITRATE, DOMAINS_ALL, CODECS_ALL, 1, 40000000, 1, 20000000},
@@ -955,10 +968,10 @@ static struct msm_vidc_codec_capability sm6150_capabilities[] = {
 	{CAP_ALLINTRA_MAX_FPS, ENC, H264|HEVC, 1, 240, 1, 30},
 
 	/* Image specific */
-	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 1, 512},
-	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 8192, 1, 8192},
-	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 8192, 1, 8192},
+	{CAP_HEVC_IMAGE_FRAME_WIDTH, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEVC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 128, 512, 2, 512},
+	{CAP_HEIC_IMAGE_FRAME_WIDTH, ENC, HEVC, 512, 8192, 2, 8192},
+	{CAP_HEIC_IMAGE_FRAME_HEIGHT, ENC, HEVC, 512, 8192, 2, 8192},
 
 	/* Level for AVC and HEVC encoder specific.
 	   Default for levels is UNKNOWN value. But if we use unknown
@@ -1308,11 +1321,15 @@ static struct msm_vidc_common_data shima_common_data_v0[] = {
 	},
 	{
 		.key = "qcom,max-hw-load",
-		.value = 4147200,
+		.value = 3916800,
 		/**
 		 * (3840x2176)/256)@120fps decode,
-		 * (8192x4320)/256)@30fps decode
+		 * (7680x4320)/256)@30fps decode
 		 */
+	},
+	{
+		.key = "qcom,max-image-load",
+		.value = 1048576, /* ((16384x16384)/256)@1fps */
 	},
 	{
 		.key = "qcom,max-mbpf",
@@ -1428,6 +1445,10 @@ static struct msm_vidc_common_data shima_common_data_v1[] = {
 		 */
 	},
 	{
+		.key = "qcom,max-image-load",
+		.value = 1048576, /* ((16384x16384)/256)@1fps */
+	},
+	{
 		.key = "qcom,max-mbpf",
 		.value = 130560, /* ((3840x2176)/256) x 4 */
 	},
@@ -1541,6 +1562,10 @@ static struct msm_vidc_common_data shima_common_data_v2[] = {
 		 */
 	},
 	{
+		.key = "qcom,max-image-load",
+		.value = 1048576, /* ((16384x16384)/256)@1fps */
+	},
+	{
 		.key = "qcom,max-mbpf",
 		.value = 130560, /* ((3840x2176)/256) x 4 */
 	},
@@ -1649,6 +1674,10 @@ static struct msm_vidc_common_data holi_common_data[] = {
 	{
 		.key = "qcom,max-hw-load",
 		.value = 489600, /* ((1088x1920)/256)@60fps */
+	},
+	{
+		.key = "qcom,max-image-load",
+		.value = 262144, /* ((8192x8192)/256)@1fps */
 	},
 	{
 		.key = "qcom,max-mbpf",
