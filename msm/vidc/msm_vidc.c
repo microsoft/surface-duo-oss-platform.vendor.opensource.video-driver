@@ -369,6 +369,7 @@ int msm_vidc_qbuf(void *instance, struct media_device *mdev,
 	struct buf_queue *q = NULL;
 	s64 timestamp_us = 0;
 	u32 cr = 0;
+	struct v4l2_format *f;
 
 	if (!inst || !inst->core || !b || !valid_v4l2_buffer(b, inst)) {
 		d_vpr_e("%s: invalid params %pK %pK\n", __func__, inst, b);
@@ -433,8 +434,10 @@ int msm_vidc_qbuf(void *instance, struct media_device *mdev,
 
 	timestamp_us = (s64)((b->timestamp.tv_sec * 1000000) +
 		b->timestamp.tv_usec);
+
+	f = &inst->fmts[INPUT_PORT].v4l2_fmt;
 	if (is_decode_session(inst) && b->type == INPUT_MPLANE &&
-		is_ts_reorder_allowed(inst)) {
+		(is_ts_reorder_allowed(inst) || f->fmt.pix_mp.pixelformat == V4L2_PIX_FMT_VP9)) {
 		if (inst->flush_timestamps)
 			msm_comm_release_timestamps(inst);
 		inst->flush_timestamps = false;
