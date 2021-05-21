@@ -35,6 +35,15 @@ ifeq ($(CONFIG_ARCH_SCUBA), y)
 LINUXINCLUDE    += -include $(srctree)/techpack/video/config/scubavidconf.h
 endif
 
+# auto-detect subdirs
+ifeq ($(CONFIG_ARCH_MONACO), y)
+include $(srctree)/techpack/video/config/monacovid.conf
+endif
+
+ifeq ($(CONFIG_ARCH_MONACO), y)
+LINUXINCLUDE    += -include $(srctree)/techpack/video/config/monacovidconf.h
+endif
+
 LINUXINCLUDE    += -I$(srctree)/techpack/video/include \
                    -I$(srctree)/techpack/video/include/uapi
 
