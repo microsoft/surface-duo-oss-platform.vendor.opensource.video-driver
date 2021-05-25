@@ -277,6 +277,10 @@ static int read_platform_resources(struct msm_vidc_core *core,
 	}
 
 	rc = read_platform_resources_from_dt(&core->resources);
+
+	if(core->resources.allowed_clks_tbl_size == 1)
+		core->resources.dcvs = 0;
+
 	if (rc) {
 		d_vpr_e("%s: read platform resources from dt failed\n",
 			__func__);
