@@ -120,13 +120,15 @@
 #define VIDC_UC_REGION_ADDR_AR50_LT		VIDC_CPU_CS_SCIBARG1_AR50_LT
 #define VIDC_UC_REGION_SIZE_AR50_LT		VIDC_CPU_CS_SCIBARG2_AR50_LT
 
-void __interrupt_init_ar50_lt(struct venus_hfi_device *device, u32 sid)
+int __interrupt_init_ar50_lt(struct venus_hfi_device *device, u32 sid)
 {
 	__write_register(device, VIDC_WRAPPER_INTR_MASK_AR50_LT,
 		VIDC_WRAPPER_INTR_MASK_A2HVCODEC_BMSK_AR50_LT, sid);
+
+	return 0;
 }
 
-void __setup_ucregion_memory_map_ar50_lt(struct venus_hfi_device *device, u32 sid)
+int __setup_ucregion_memory_map_ar50_lt(struct venus_hfi_device *device, u32 sid)
 {
 	__write_register(device, VIDC_UC_REGION_ADDR_AR50_LT,
 			(u32)device->iface_q_table.align_device_addr, sid);
@@ -140,12 +142,14 @@ void __setup_ucregion_memory_map_ar50_lt(struct venus_hfi_device *device, u32 si
 	if (device->qdss.align_device_addr)
 		__write_register(device, VIDC_MMAP_ADDR_AR50_LT,
 				(u32)device->qdss.align_device_addr, sid);
+
+	return 0;
 }
 
-void __power_off_ar50_lt(struct venus_hfi_device *device)
+int __power_off_ar50_lt(struct venus_hfi_device *device)
 {
 	if (!device->power_enabled)
-		return;
+		return 0;
 
 	if (!(device->intr_status & VIDC_WRAPPER_INTR_STATUS_A2HWD_BMSK_AR50_LT))
 		disable_irq_nosync(device->hal_data->irq);
@@ -158,6 +162,8 @@ void __power_off_ar50_lt(struct venus_hfi_device *device)
 	if (__unvote_buses(device, DEFAULT_SID))
 		d_vpr_e("Failed to unvote for buses\n");
 	device->power_enabled = false;
+
+	return 0;
 }
 
 int __prepare_pc_ar50_lt(struct venus_hfi_device *device)
@@ -214,19 +220,21 @@ skip_power_off:
 	return -EAGAIN;
 }
 
-void __raise_interrupt_ar50_lt(struct venus_hfi_device *device, u32 sid)
+int __raise_interrupt_ar50_lt(struct venus_hfi_device *device, u32 sid)
 {
 	__write_register(device, VIDC_CPU_IC_SOFTINT_AR50_LT,
 		VIDC_CPU_IC_SOFTINT_H2A_SHFT_AR50_LT, sid);
+
+	return 0;
 }
 
-void __core_clear_interrupt_ar50_lt(struct venus_hfi_device *device)
+int __core_clear_interrupt_ar50_lt(struct venus_hfi_device *device)
 {
 	u32 intr_status = 0, mask = 0;
 
 	if (!device) {
 		d_vpr_e("%s: NULL device\n", __func__);
-		return;
+		return 0;
 	}
 
 	intr_status = __read_register(device, VIDC_WRAPPER_INTR_STATUS_AR50_LT, DEFAULT_SID);
@@ -245,6 +253,8 @@ void __core_clear_interrupt_ar50_lt(struct venus_hfi_device *device)
 	}
 
 	__write_register(device, VIDC_CPU_CS_A2HSOFTINTCLR_AR50_LT, 1, DEFAULT_SID);
+
+	return 0;
 }
 
 int __boot_firmware_ar50_lt(struct venus_hfi_device *device, u32 sid)

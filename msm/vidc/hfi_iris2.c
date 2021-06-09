@@ -138,7 +138,7 @@
 #define VCODEC_NOC_ERL_MAIN_ERRLOG3_LOW			0x00011238
 #define VCODEC_NOC_ERL_MAIN_ERRLOG3_HIGH		0x0001123C
 
-void __interrupt_init_iris2(struct venus_hfi_device *device, u32 sid)
+int __interrupt_init_iris2(struct venus_hfi_device *device, u32 sid)
 {
 	u32 mask_val = 0;
 
@@ -149,9 +149,11 @@ void __interrupt_init_iris2(struct venus_hfi_device *device, u32 sid)
 	mask_val &= ~(WRAPPER_INTR_MASK_A2HWD_BMSK_IRIS2|
 			WRAPPER_INTR_MASK_A2HCPU_BMSK_IRIS2);
 	__write_register(device, WRAPPER_INTR_MASK_IRIS2, mask_val, sid);
+
+	return 0;
 }
 
-void __setup_ucregion_memory_map_iris2(struct venus_hfi_device *device, u32 sid)
+int __setup_ucregion_memory_map_iris2(struct venus_hfi_device *device, u32 sid)
 {
 	__write_register(device, UC_REGION_ADDR_IRIS2,
 			(u32)device->iface_q_table.align_device_addr, sid);
@@ -167,19 +169,21 @@ void __setup_ucregion_memory_map_iris2(struct venus_hfi_device *device, u32 sid)
 				(u32)device->qdss.align_device_addr, sid);
 	/* update queues vaddr for debug purpose */
 	__write_register(device, CPU_CS_VCICMDARG0_IRIS2,
-		(u32)device->iface_q_table.align_virtual_addr, sid);
+		(u32)((u64)device->iface_q_table.align_virtual_addr & 0xffffffff), sid);
 	__write_register(device, CPU_CS_VCICMDARG1_IRIS2,
 		(u32)((u64)device->iface_q_table.align_virtual_addr >> 32),
 		sid);
+
+	return 0;
 }
 
-void __power_off_iris2(struct venus_hfi_device *device)
+int __power_off_iris2(struct venus_hfi_device *device)
 {
 	u32 lpi_status, reg_status = 0, count = 0, max_count = 10;
 	u32 sid = DEFAULT_SID;
 
 	if (!device->power_enabled)
-		return;
+		return 0;
 
 	if (!(device->intr_status & WRAPPER_INTR_STATUS_A2HWD_BMSK_IRIS2))
 		disable_irq_nosync(device->hal_data->irq);
@@ -250,6 +254,8 @@ skip_aon_mvp_noc:
 	if (__unvote_buses(device, sid))
 		d_vpr_e("%s: Failed to unvote for buses\n", __func__);
 	device->power_enabled = false;
+
+	return 0;
 }
 
 int __prepare_pc_iris2(struct venus_hfi_device *device)
@@ -306,10 +312,12 @@ skip_power_off:
 	return -EAGAIN;
 }
 
-void __raise_interrupt_iris2(struct venus_hfi_device *device, u32 sid)
+int __raise_interrupt_iris2(struct venus_hfi_device *device, u32 sid)
 {
 	__write_register(device, CPU_IC_SOFTINT_IRIS2,
 				1 << CPU_IC_SOFTINT_H2A_SHFT_IRIS2, sid);
+
+	return 0;
 }
 
 bool __watchdog_iris2(u32 intr_status)
@@ -322,13 +330,13 @@ bool __watchdog_iris2(u32 intr_status)
 	return rc;
 }
 
-void __noc_error_info_iris2(struct venus_hfi_device *device)
+int __noc_error_info_iris2(struct venus_hfi_device *device)
 {
 	u32 val = 0;
 	u32 sid = DEFAULT_SID;
 
 	if (device->res->vpu_ver == VPU_VERSION_IRIS2_1)
-		return;
+		return 0;
 	val = __read_register(device, VCODEC_NOC_ERL_MAIN_SWID_LOW, sid);
 	d_vpr_e("VCODEC_NOC_ERL_MAIN_SWID_LOW:     %#x\n", val);
 	val = __read_register(device, VCODEC_NOC_ERL_MAIN_SWID_HIGH, sid);
@@ -355,15 +363,17 @@ void __noc_error_info_iris2(struct venus_hfi_device *device)
 	d_vpr_e("VCODEC_NOC_ERL_MAIN_ERRLOG3_LOW:     %#x\n", val);
 	val = __read_register(device, VCODEC_NOC_ERL_MAIN_ERRLOG3_HIGH, sid);
 	d_vpr_e("VCODEC_NOC_ERL_MAIN_ERRLOG3_HIGH:     %#x\n", val);
+
+	return 0;
 }
 
-void __core_clear_interrupt_iris2(struct venus_hfi_device *device)
+int __core_clear_interrupt_iris2(struct venus_hfi_device *device)
 {
 	u32 intr_status = 0, mask = 0;
 
 	if (!device) {
 		d_vpr_e("%s: NULL device\n", __func__);
-		return;
+		return 0;
 	}
 
 	intr_status = __read_register(device, WRAPPER_INTR_STATUS_IRIS2,
@@ -382,6 +392,8 @@ void __core_clear_interrupt_iris2(struct venus_hfi_device *device)
 	}
 
 	__write_register(device, CPU_CS_A2HSOFTINTCLR_IRIS2, 1, DEFAULT_SID);
+
+	return 0;
 }
 
 int __boot_firmware_iris2(struct venus_hfi_device *device, u32 sid)
