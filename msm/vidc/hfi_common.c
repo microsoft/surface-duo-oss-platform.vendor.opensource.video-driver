@@ -29,7 +29,7 @@ enum tzbsp_video_state {
 	TZBSP_VIDEO_STATE_RESTORE_THRESHOLD = 2,
 };
 
-const struct msm_vidc_bus_data DEFAULT_BUS_VOTE = {
+static const struct msm_vidc_bus_data DEFAULT_BUS_VOTE = {
 	.total_bw_ddr = 0,
 	.total_bw_llcc = 0,
 };
@@ -40,7 +40,7 @@ const struct msm_vidc_bus_data DEFAULT_BUS_VOTE = {
 	((a) > (b) ? (a) - (b) < TRIVIAL_BW_THRESHOLD : \
 		(b) - (a) < TRIVIAL_BW_THRESHOLD)
 
-const int max_packets = 480; /* 16 sessions x 30 packets */
+static const int max_packets = 480; /* 16 sessions x 30 packets */
 
 static void venus_hfi_pm_handler(struct work_struct *work);
 static DECLARE_DELAYED_WORK(venus_hfi_pm_work, venus_hfi_pm_handler);
@@ -79,7 +79,7 @@ static inline int __boot_firmware_common(
 static int __setup_ucregion_memory_map_common(
 		struct venus_hfi_device *device, u32 sid);
 
-struct venus_hfi_vpu_ops vpu4_ops = {
+static struct venus_hfi_vpu_ops vpu4_ops = {
 	.interrupt_init = __interrupt_init_ar50,
 	.setup_ucregion_memmap = __setup_ucregion_memory_map_common,
 	.clock_config_on_enable = NULL,
@@ -93,7 +93,7 @@ struct venus_hfi_vpu_ops vpu4_ops = {
 	.boot_firmware = __boot_firmware_common,
 };
 
-struct venus_hfi_vpu_ops ar50_lite_ops = {
+static struct venus_hfi_vpu_ops ar50_lite_ops = {
         .interrupt_init = __interrupt_init_ar50_lt,
         .setup_ucregion_memmap = __setup_ucregion_memory_map_ar50_lt,
         .clock_config_on_enable = NULL,
@@ -107,7 +107,7 @@ struct venus_hfi_vpu_ops ar50_lite_ops = {
         .boot_firmware = __boot_firmware_ar50_lt,
 };
 
-struct venus_hfi_vpu_ops iris1_ops = {
+static struct venus_hfi_vpu_ops iris1_ops = {
 	.interrupt_init = __interrupt_init_iris1,
 	.setup_ucregion_memmap = __setup_ucregion_memory_map_iris1,
 	.clock_config_on_enable = __clock_config_on_enable_iris1,
@@ -121,7 +121,7 @@ struct venus_hfi_vpu_ops iris1_ops = {
 	.boot_firmware = __boot_firmware_common,
 };
 
-struct venus_hfi_vpu_ops iris2_ops = {
+static struct venus_hfi_vpu_ops iris2_ops = {
 	.interrupt_init = __interrupt_init_iris2,
 	.setup_ucregion_memmap = __setup_ucregion_memory_map_iris2,
 	.clock_config_on_enable = NULL,
@@ -938,7 +938,7 @@ void __write_register(struct venus_hfi_device *device,
 		u32 reg, u32 value, u32 sid)
 {
 	u32 hwiosymaddr = reg;
-	u8 *base_addr;
+	u8 __iomem *base_addr;
 
 	if (!device) {
 		s_vpr_e(sid, "%s: invalid params\n", __func__);
@@ -974,7 +974,7 @@ void __write_register_masked(struct venus_hfi_device *device,
 		u32 reg, u32 value, u32 mask, u32 sid)
 {
 	u32 prev_val, new_val;
-	u8 *base_addr;
+	u8 __iomem *base_addr;
 
 	if (!device) {
 		s_vpr_e(sid, "%s: invalid params\n", __func__);
@@ -1013,7 +1013,7 @@ void __write_register_masked(struct venus_hfi_device *device,
 int __read_register(struct venus_hfi_device *device, u32 reg, u32 sid)
 {
 	int rc = 0;
-	u8 *base_addr;
+	u8 __iomem *base_addr;
 
 	if (!device) {
 		s_vpr_e(sid, "%s: invalid params\n", __func__);
@@ -4723,7 +4723,7 @@ static int __initialize_packetization(struct venus_hfi_device *device)
 	return rc;
 }
 
-void __init_venus_ops(struct venus_hfi_device *device)
+static void __init_venus_ops(struct venus_hfi_device *device)
 {
 	if (device->res->vpu_ver == VPU_VERSION_AR50)
 		device->vpu_ops = &vpu4_ops;

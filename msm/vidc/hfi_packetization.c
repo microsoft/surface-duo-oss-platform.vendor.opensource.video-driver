@@ -224,7 +224,7 @@ int create_pkt_cmd_sys_release_resource(
 	return rc;
 }
 
-inline int create_pkt_cmd_sys_session_init(
+static inline int create_pkt_cmd_sys_session_init(
 		struct hfi_cmd_sys_session_init_packet *pkt,
 		u32 sid, u32 session_domain, u32 session_codec)
 {
@@ -465,7 +465,7 @@ int create_pkt_cmd_session_release_buffers(
 	return rc;
 }
 
-int create_pkt_cmd_session_register_buffer(
+static int create_pkt_cmd_session_register_buffer(
 		struct hfi_cmd_session_register_buffers_packet *pkt,
 		u32 sid, struct vidc_register_buffer *buffer)
 {
@@ -497,7 +497,7 @@ int create_pkt_cmd_session_register_buffer(
 	return rc;
 }
 
-int create_pkt_cmd_session_unregister_buffer(
+static int create_pkt_cmd_session_unregister_buffer(
 		struct hfi_cmd_session_unregister_buffers_packet *pkt,
 		u32 sid, struct vidc_unregister_buffer *buffer)
 {
@@ -529,7 +529,7 @@ int create_pkt_cmd_session_unregister_buffer(
 	return rc;
 }
 
-int create_pkt_cmd_session_etb_decoder(
+static int create_pkt_cmd_session_etb_decoder(
 	struct hfi_cmd_session_empty_buffer_compressed_packet *pkt,
 	u32 sid, struct vidc_frame_data *input_frame)
 {
@@ -565,7 +565,7 @@ int create_pkt_cmd_session_etb_decoder(
 	return rc;
 }
 
-int create_pkt_cmd_session_etb_encoder(
+static int create_pkt_cmd_session_etb_encoder(
 	struct hfi_cmd_session_empty_buffer_uncompressed_plane0_packet *pkt,
 	u32 sid, struct vidc_frame_data *input_frame)
 {
@@ -602,7 +602,7 @@ int create_pkt_cmd_session_etb_encoder(
 	return rc;
 }
 
-int create_pkt_cmd_session_ftb(struct hfi_cmd_session_fill_buffer_packet *pkt,
+static int create_pkt_cmd_session_ftb(struct hfi_cmd_session_fill_buffer_packet *pkt,
 		u32 sid, struct vidc_frame_data *output_frame)
 {
 	int rc = 0;
@@ -637,7 +637,7 @@ int create_pkt_cmd_session_ftb(struct hfi_cmd_session_fill_buffer_packet *pkt,
 	return rc;
 }
 
-int create_pkt_cmd_session_get_buf_req(
+static int create_pkt_cmd_session_get_buf_req(
 		struct hfi_cmd_session_get_property_packet *pkt,
 		u32 sid)
 {
@@ -655,7 +655,7 @@ int create_pkt_cmd_session_get_buf_req(
 	return rc;
 }
 
-int create_pkt_cmd_session_flush(struct hfi_cmd_session_flush_packet *pkt,
+static int create_pkt_cmd_session_flush(struct hfi_cmd_session_flush_packet *pkt,
 			u32 sid, enum hal_flush flush_mode)
 {
 	int rc = 0;
@@ -683,7 +683,7 @@ int create_pkt_cmd_session_flush(struct hfi_cmd_session_flush_packet *pkt,
 	return rc;
 }
 
-int create_pkt_cmd_session_set_property(
+static int create_pkt_cmd_session_set_property(
 		struct hfi_cmd_session_set_property_packet *pkt,
 		u32 sid,
 		u32 ptype, void *pdata, u32 size)
@@ -730,7 +730,7 @@ static int get_hfi_ssr_type(enum hal_ssr_trigger_type type)
 	return rc;
 }
 
-int create_pkt_ssr_cmd(struct hfi_cmd_sys_test_ssr_packet *pkt,
+static int create_pkt_ssr_cmd(struct hfi_cmd_sys_test_ssr_packet *pkt,
 		enum hal_ssr_trigger_type ssr_type, u32 sub_client_id,
 		u32 test_addr)
 {
@@ -752,7 +752,7 @@ int create_pkt_ssr_cmd(struct hfi_cmd_sys_test_ssr_packet *pkt,
 	return 0;
 }
 
-int create_pkt_cmd_sys_image_version(
+static int create_pkt_cmd_sys_image_version(
 		struct hfi_cmd_sys_get_property_packet *pkt)
 {
 	if (!pkt) {
@@ -766,7 +766,7 @@ int create_pkt_cmd_sys_image_version(
 	return 0;
 }
 
-int create_pkt_cmd_session_sync_process(
+static int create_pkt_cmd_session_sync_process(
 	struct hfi_cmd_session_sync_process_packet *pkt, u32 sid)
 {
 	if (!pkt)
