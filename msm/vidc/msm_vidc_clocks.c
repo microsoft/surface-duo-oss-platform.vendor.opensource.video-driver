@@ -27,7 +27,7 @@ static unsigned long msm_vidc_calc_freq_iris1(struct msm_vidc_inst *inst,
 static unsigned long msm_vidc_calc_freq_iris2(struct msm_vidc_inst *inst,
 	u32 filled_len);
 
-struct msm_vidc_core_ops core_ops_ar50_lt = {
+static struct msm_vidc_core_ops core_ops_ar50_lt = {
 	.calc_freq = msm_vidc_calc_freq_ar50_lt,
 	.decide_work_route = NULL,
 	.decide_work_mode = msm_vidc_decide_work_mode_ar50_lt,
@@ -35,7 +35,7 @@ struct msm_vidc_core_ops core_ops_ar50_lt = {
 		msm_vidc_decide_core_and_power_mode_ar50lt,
 	.calc_bw = calc_bw_ar50lt,
 };
-struct msm_vidc_core_ops core_ops_ar50 = {
+static struct msm_vidc_core_ops core_ops_ar50 = {
 	.calc_freq = msm_vidc_calc_freq_ar50_lt,
 	.decide_work_route = NULL,
 	.decide_work_mode = msm_vidc_decide_work_mode_ar50_lt,
@@ -43,7 +43,7 @@ struct msm_vidc_core_ops core_ops_ar50 = {
 		msm_vidc_decide_core_and_power_mode_ar50lt,
 	.calc_bw = NULL,
 };
-struct msm_vidc_core_ops core_ops_iris1 = {
+static struct msm_vidc_core_ops core_ops_iris1 = {
 	.calc_freq = msm_vidc_calc_freq_iris1,
 	.decide_work_route = msm_vidc_decide_work_route_iris1,
 	.decide_work_mode = msm_vidc_decide_work_mode_iris1,
@@ -51,7 +51,7 @@ struct msm_vidc_core_ops core_ops_iris1 = {
 	.calc_bw = calc_bw_iris1,
 };
 
-struct msm_vidc_core_ops core_ops_iris2 = {
+static struct msm_vidc_core_ops core_ops_iris2 = {
 	.calc_freq = msm_vidc_calc_freq_iris2,
 	.decide_work_route = msm_vidc_decide_work_route_iris2,
 	.decide_work_mode = msm_vidc_decide_work_mode_iris2,
@@ -302,7 +302,7 @@ static int fill_dynamic_stats(struct msm_vidc_inst *inst,
 	return 0;
 }
 
-int msm_comm_set_buses(struct msm_vidc_core *core, u32 sid)
+static int msm_comm_set_buses(struct msm_vidc_core *core, u32 sid)
 {
 	int rc = 0;
 	struct msm_vidc_inst *inst = NULL;
@@ -1039,7 +1039,7 @@ int msm_vidc_set_clocks(struct msm_vidc_core *core, u32 sid)
 	return rc;
 }
 
-int msm_comm_scale_clocks(struct msm_vidc_inst *inst)
+static int msm_comm_scale_clocks(struct msm_vidc_inst *inst)
 {
 	struct msm_vidc_buffer *temp, *next;
 	unsigned long freq = 0;
@@ -1701,6 +1701,7 @@ static inline int msm_vidc_power_save_mode_enable(struct msm_vidc_inst *inst,
 	void *pdata = NULL;
 	struct hfi_device *hdev = NULL;
 	u32 hfi_perf_mode;
+	struct v4l2_ctrl *ctrl;
 
 	hdev = inst->core->device;
 	if (inst->session_type != MSM_VIDC_ENCODER) {
@@ -1710,6 +1711,9 @@ static inline int msm_vidc_power_save_mode_enable(struct msm_vidc_inst *inst,
 		return 0;
 	}
 
+	ctrl = get_ctrl(inst, V4L2_CID_MPEG_VIDC_VENC_COMPLEXITY);
+	if (!is_realtime_session(inst) && !ctrl->val)
+		enable = true;
 	prop_id = HFI_PROPERTY_CONFIG_VENC_PERF_MODE;
 	hfi_perf_mode = enable ? HFI_VENC_PERFMODE_POWER_SAVE :
 		HFI_VENC_PERFMODE_MAX_QUALITY;

@@ -1015,11 +1015,11 @@ static u32 vpe_csc_custom_limit_coeff[HAL_MAX_LIMIT_COEFFS] = {
 	16, 235, 16, 240, 16, 240
 };
 
-struct allowed_clock_rates_table shima_clock_data_v0[] = {
+static struct allowed_clock_rates_table shima_clock_data_v0[] = {
 	{240000000}, {338000000}, {366000000}, {444000000}
 };
 
-struct allowed_clock_rates_table shima_clock_data_v2[] = {
+static struct allowed_clock_rates_table shima_clock_data_v2[] = {
 	{201600000}
 };
 
@@ -1728,7 +1728,7 @@ static struct msm_vidc_common_data sm8150_common_data[] = {
 	},
 	{
 		.key = "qcom,max-secure-instances",
-		.value = 2, /*
+		.value = 3,             /*
 					 * As per design driver allows 3rd
 					 * instance as well since the secure
 					 * flags were updated later for the
@@ -1960,7 +1960,7 @@ static struct msm_vidc_platform_data default_data = {
 	.sku_version = 0,
 	.vpu_ver = VPU_VERSION_IRIS2,
 	.num_vpp_pipes = 0x4,
-	.ubwc_config = 0x0,
+	.ubwc_config = NULL,
 };
 
 static struct msm_vidc_platform_data lahaina_data = {
@@ -2000,7 +2000,7 @@ static struct msm_vidc_platform_data bengal_data = {
 	.sku_version = 0,
 	.vpu_ver = VPU_VERSION_AR50_LITE,
 	.num_vpp_pipes = 0x1,
-	.ubwc_config = 0x0,
+	.ubwc_config = NULL,
 	.codecs = bengal_codecs,
 	.codecs_count = ARRAY_SIZE(bengal_codecs),
 	.codec_caps = bengal_capabilities_v0,
@@ -2044,7 +2044,7 @@ static struct msm_vidc_platform_data holi_data = {
 	.sku_version = 0,
 	.vpu_ver = VPU_VERSION_AR50_LITE,
 	.num_vpp_pipes = 0x1,
-	.ubwc_config = 0x0,
+	.ubwc_config = NULL,
 	.codecs = holi_codecs,
 	.codecs_count = ARRAY_SIZE(holi_codecs),
 	.codec_caps = holi_capabilities,
@@ -2066,7 +2066,7 @@ static struct msm_vidc_platform_data sm8150_data = {
 	.sku_version = 0,
 	.vpu_ver = VPU_VERSION_IRIS1,
 	.num_vpp_pipes = 0x2,
-	.ubwc_config = 0x0,
+	.ubwc_config = NULL,
 	.codecs = sm8150_codecs,
 	.codecs_count = ARRAY_SIZE(sm8150_codecs),
 	.codec_caps = sm8150_capabilities,
@@ -2110,7 +2110,7 @@ static struct msm_vidc_platform_data sm6150_data = {
 	.sku_version = 0,
 	.vpu_ver = VPU_VERSION_AR50,
 	.num_vpp_pipes = 0x1,
-	.ubwc_config = 0x0,
+	.ubwc_config = NULL,
 	.codecs = sm8150_codecs,
 	.codecs_count = ARRAY_SIZE(sm8150_codecs),
 	.codec_caps = sm6150_capabilities,

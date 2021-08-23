@@ -482,7 +482,7 @@ static struct msm_vidc_ctrl msm_vdec_ctrls[] = {
 #define NUM_CTRLS ARRAY_SIZE(msm_vdec_ctrls)
 
 
-struct msm_vidc_format_desc vdec_output_formats[] = {
+static struct msm_vidc_format_desc vdec_output_formats[] = {
 	{
 		.name = "YCbCr Semiplanar 4:2:0",
 		.description = "Y/CbCr 4:2:0",
@@ -505,7 +505,7 @@ struct msm_vidc_format_desc vdec_output_formats[] = {
 	},
 };
 
-struct msm_vidc_format_desc vdec_input_formats[] = {
+static struct msm_vidc_format_desc vdec_input_formats[] = {
 	{
 		.name = "Mpeg2",
 		.description = "Mpeg2 compressed format",
@@ -533,7 +533,7 @@ struct msm_vidc_format_desc vdec_input_formats[] = {
 	},
 };
 
-struct msm_vidc_format_constraint dec_pix_format_constraints[] = {
+static struct msm_vidc_format_constraint dec_pix_format_constraints[] = {
 	{
 		.fourcc = V4L2_PIX_FMT_SDE_Y_CBCR_H2V2_P010_VENUS,
 		.num_planes = 2,
@@ -578,7 +578,7 @@ static bool msm_vidc_check_for_vp9d_overload(struct msm_vidc_core *core)
 	return false;
 }
 
-int msm_vdec_update_stream_output_mode(struct msm_vidc_inst *inst)
+static int msm_vdec_update_stream_output_mode(struct msm_vidc_inst *inst)
 {
 	struct v4l2_format *f;
 	u32 format;
@@ -1019,7 +1019,7 @@ int msm_vdec_s_ctrl(struct msm_vidc_inst *inst, struct v4l2_ctrl *ctrl)
 	return rc;
 }
 
-int msm_vdec_set_frame_size(struct msm_vidc_inst *inst)
+static int msm_vdec_set_frame_size(struct msm_vidc_inst *inst)
 {
 	int rc = 0;
 	struct hfi_device *hdev;
@@ -1046,7 +1046,7 @@ int msm_vdec_set_frame_size(struct msm_vidc_inst *inst)
 	return rc;
 }
 
-int msm_vdec_set_color_format(struct msm_vidc_inst *inst)
+static int msm_vdec_set_color_format(struct msm_vidc_inst *inst)
 {
 	int rc = 0;
 	struct hfi_device *hdev;
@@ -1085,7 +1085,7 @@ int msm_vdec_set_color_format(struct msm_vidc_inst *inst)
 	return rc;
 }
 
-int msm_vdec_set_input_buffer_counts(struct msm_vidc_inst *inst)
+static int msm_vdec_set_input_buffer_counts(struct msm_vidc_inst *inst)
 {
 	int rc = 0;
 	struct hfi_device *hdev;
@@ -1113,7 +1113,7 @@ int msm_vdec_set_input_buffer_counts(struct msm_vidc_inst *inst)
 	return rc;
 }
 
-int msm_vdec_set_output_buffer_counts(struct msm_vidc_inst *inst)
+static int msm_vdec_set_output_buffer_counts(struct msm_vidc_inst *inst)
 {
 	int rc = 0;
 	struct hfi_device *hdev;
@@ -1158,7 +1158,7 @@ int msm_vdec_set_output_buffer_counts(struct msm_vidc_inst *inst)
 	return rc;
 }
 
-int msm_vdec_set_profile_level(struct msm_vidc_inst *inst)
+static int msm_vdec_set_profile_level(struct msm_vidc_inst *inst)
 {
 	int rc = 0;
 	struct hfi_device *hdev;
@@ -1184,7 +1184,7 @@ int msm_vdec_set_profile_level(struct msm_vidc_inst *inst)
 	return rc;
 }
 
-int msm_vdec_set_output_order(struct msm_vidc_inst *inst)
+static int msm_vdec_set_output_order(struct msm_vidc_inst *inst)
 {
 	int rc = 0;
 	struct hfi_device *hdev;
@@ -1213,7 +1213,7 @@ int msm_vdec_set_output_order(struct msm_vidc_inst *inst)
 	return rc;
 }
 
-int msm_vdec_set_sync_frame_mode(struct msm_vidc_inst *inst)
+static int msm_vdec_set_sync_frame_mode(struct msm_vidc_inst *inst)
 {
 	int rc = 0;
 	struct hfi_device *hdev;
@@ -1239,7 +1239,7 @@ int msm_vdec_set_sync_frame_mode(struct msm_vidc_inst *inst)
 	return rc;
 }
 
-int msm_vdec_set_secure_mode(struct msm_vidc_inst *inst)
+static int msm_vdec_set_secure_mode(struct msm_vidc_inst *inst)
 {
 	int rc = 0;
 	struct hfi_device *hdev;
@@ -1276,7 +1276,7 @@ int msm_vdec_set_secure_mode(struct msm_vidc_inst *inst)
 	return rc;
 }
 
-int msm_vdec_set_output_stream_mode(struct msm_vidc_inst *inst)
+static int msm_vdec_set_output_stream_mode(struct msm_vidc_inst *inst)
 {
 	int rc = 0;
 	struct hfi_device *hdev;
@@ -1363,7 +1363,7 @@ int msm_vdec_set_output_stream_mode(struct msm_vidc_inst *inst)
 	return rc;
 }
 
-int msm_vdec_set_priority(struct msm_vidc_inst *inst)
+static int msm_vdec_set_priority(struct msm_vidc_inst *inst)
 {
 	int rc = 0;
 	struct hfi_device *hdev;
@@ -1387,7 +1387,7 @@ int msm_vdec_set_priority(struct msm_vidc_inst *inst)
 	return rc;
 }
 
-int msm_vdec_set_seqchng_at_syncframe(struct msm_vidc_inst *inst)
+static int msm_vdec_set_seqchng_at_syncframe(struct msm_vidc_inst *inst)
 {
 	int rc = 0;
 	u32 codec;
@@ -1421,7 +1421,7 @@ int msm_vdec_set_seqchng_at_syncframe(struct msm_vidc_inst *inst)
 	return rc;
 }
 
-int msm_vdec_set_conceal_color(struct msm_vidc_inst *inst)
+static int msm_vdec_set_conceal_color(struct msm_vidc_inst *inst)
 {
 	int rc = 0;
 	struct hfi_device *hdev;
@@ -1452,8 +1452,7 @@ int msm_vdec_set_conceal_color(struct msm_vidc_inst *inst)
 	return rc;
 }
 
-
-int msm_vdec_set_extradata(struct msm_vidc_inst *inst)
+static int msm_vdec_set_extradata(struct msm_vidc_inst *inst)
 {
 	uint32_t display_info = HFI_PROPERTY_PARAM_VUI_DISPLAY_INFO_EXTRADATA;
 	u32 value = 0x0;
