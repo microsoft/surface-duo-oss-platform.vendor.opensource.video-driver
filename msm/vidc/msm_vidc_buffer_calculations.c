@@ -275,6 +275,7 @@
 #define SYSTEM_LAL_TILE10 192
 #define NUM_MBS_480P (((640 + 15) >> 4) * ((480 + 15) >> 4))
 #define NUM_MBS_720P (((1280 + 15) >> 4) * ((720 + 15) >> 4))
+#define NUM_MBS_1080P (((1920 + 15) >> 4) * ((1088 + 15) >> 4))
 #define NUM_MBS_4k (((4096 + 15) >> 4) * ((2304 + 15) >> 4))
 #define MB_SIZE_IN_PIXEL (16 * 16)
 #define HDR10PLUS_PAYLOAD_SIZE 1024
@@ -941,7 +942,11 @@ u32 msm_vidc_calculate_dec_input_frame_size(struct msm_vidc_inst *inst)
 		div_factor = 4;
 		base_res_mbs = inst->capability.cap[CAP_MBS_PER_FRAME].max;
 	} else {
-		base_res_mbs = NUM_MBS_4k;
+		if (num_mbs > NUM_MBS_1080P) {
+			base_res_mbs = NUM_MBS_4k;
+		} else {
+			base_res_mbs = NUM_MBS_1080P;
+		}
 		if (f->fmt.pix_mp.pixelformat == V4L2_PIX_FMT_VP9)
 			div_factor = 1;
 		else
