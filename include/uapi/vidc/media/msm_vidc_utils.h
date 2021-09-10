@@ -331,13 +331,13 @@ struct msm_vidc_aspect_ratio_payload {
 
 #define MSM_VIDC_EXTRADATA_INPUT_CROP 0x0700000E
 struct msm_vidc_input_crop_payload {
-	unsigned int size;
-	unsigned int version;
-	unsigned int port_index;
-	unsigned int left;
-	unsigned int top;
-	unsigned int width;
-	unsigned int height;
+	__u32 size;
+	__u32 version;
+	__u32 port_index;
+	__u32 left;
+	__u32 top;
+	__u32 width;
+	__u32 height;
 };
 
 struct msm_vidc_misr_info {

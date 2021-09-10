@@ -2300,6 +2300,30 @@ static struct msm_vidc_platform_data scuba_data = {
 	.vpss_caps_count = 0,
 };
 
+static struct msm_vidc_platform_data scuba_data = {
+	.codec_data = scuba_codec_data,
+	.codec_data_length =  ARRAY_SIZE(scuba_codec_data),
+	.clock_data = NULL,
+	.clock_data_length = 0,
+	.common_data = scuba_common_data,
+	.common_data_length =  ARRAY_SIZE(scuba_common_data),
+	.csc_data.vpe_csc_custom_bias_coeff = vpe_csc_custom_bias_coeff,
+	.csc_data.vpe_csc_custom_matrix_coeff = vpe_csc_custom_matrix_coeff,
+	.csc_data.vpe_csc_custom_limit_coeff = vpe_csc_custom_limit_coeff,
+	.efuse_data = NULL,
+	.efuse_data_length = 0,
+	.sku_version = 0,
+	.vpu_ver = VPU_VERSION_AR50_LITE,
+	.num_vpp_pipes = 0x1,
+	.ubwc_config = 0x0,
+	.codecs = scuba_codecs,
+	.codecs_count = ARRAY_SIZE(scuba_codecs),
+	.codec_caps = scuba_capabilities,
+	.codec_caps_count = ARRAY_SIZE(scuba_capabilities),
+	.vpss_caps = NULL,
+	.vpss_caps_count = 0,
+};
+
 static const struct of_device_id msm_vidc_dt_device[] = {
 	{
 		.compatible = "qcom,lahaina-vidc",
