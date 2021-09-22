@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
  */
 
 #include <linux/module.h>
@@ -2176,6 +2176,7 @@ static struct msm_vidc_platform_data default_data = {
 	.vpu_ver = VPU_VERSION_IRIS2,
 	.num_vpp_pipes = 0x4,
 	.ubwc_config = 0x0,
+	.max_inst_count = MAX_SUPPORTED_INSTANCES,
 };
 
 static struct msm_vidc_platform_data lahaina_data = {
@@ -2200,6 +2201,7 @@ static struct msm_vidc_platform_data lahaina_data = {
 	.codec_caps_count = ARRAY_SIZE(lahaina_capabilities),
 	.vpss_caps = vpss_capabilities,
 	.vpss_caps_count = ARRAY_SIZE(vpss_capabilities),
+	.max_inst_count = MAX_SUPPORTED_INSTANCES,
 };
 
 static struct msm_vidc_platform_data yupik_data = {
@@ -2224,6 +2226,7 @@ static struct msm_vidc_platform_data yupik_data = {
 	.codec_caps_count = ARRAY_SIZE(yupik_capabilities_v0),
 	.vpss_caps = vpss_capabilities,
 	.vpss_caps_count = ARRAY_SIZE(vpss_capabilities),
+	.max_inst_count = MAX_SUPPORTED_INSTANCES,
 };
 
 static struct msm_vidc_platform_data bengal_data = {
@@ -2248,6 +2251,7 @@ static struct msm_vidc_platform_data bengal_data = {
 	.codec_caps_count = ARRAY_SIZE(bengal_capabilities_v0),
 	.vpss_caps = NULL,
 	.vpss_caps_count = 0,
+	.max_inst_count = MAX_SUPPORTED_INSTANCES,
 };
 
 static struct msm_vidc_platform_data shima_data = {
@@ -2272,6 +2276,7 @@ static struct msm_vidc_platform_data shima_data = {
 	.codec_caps_count = ARRAY_SIZE(shima_capabilities_v0),
 	.vpss_caps = vpss_capabilities,
 	.vpss_caps_count = ARRAY_SIZE(vpss_capabilities),
+	.max_inst_count = MAX_SUPPORTED_INSTANCES,
 };
 
 static struct msm_vidc_platform_data holi_data = {
@@ -2296,6 +2301,7 @@ static struct msm_vidc_platform_data holi_data = {
 	.codec_caps_count = ARRAY_SIZE(holi_capabilities),
 	.vpss_caps = NULL,
 	.vpss_caps_count = 0,
+	.max_inst_count = MAX_SUPPORTED_INSTANCES,
 };
 
 static struct msm_vidc_platform_data scuba_data = {
@@ -2546,6 +2552,7 @@ void *vidc_get_drv_data(struct device *dev)
 					ARRAY_SIZE(yupik_capabilities_v1);
 		}
 		msm_vidc_ddr_ubwc_config(driver_data, 0xe);
+		driver_data->max_inst_count = MAX_SUPPORTED_INSTANCES_24;
 	}
 exit:
 	return driver_data;
